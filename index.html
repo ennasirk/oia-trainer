@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0032A0">
+<title>OIA Trainer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230032A0'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='26' font-weight='700' fill='white' text-anchor='middle'%3EOIA%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --gvsu-blue:#0032A0; --midnight:#13155C; --black:#000; --white:#fff;
+  --correct-bg:#D8F6F5; --wrong-bg:#F1E2DB; --wrong-border:#BA6F4C; --missed-bg:#F8F3EA;
+  --track:#CCD6EC; --muted:#4a4a5a; --line:#d5d9e4; --soft:#f4f6fb;
+  --radius:12px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--white);color:var(--black);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.45}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+a{color:var(--gvsu-blue)}
+:focus-visible{outline:3px solid var(--gvsu-blue);outline-offset:2px}
+.wrap{max-width:480px;margin:0 auto;padding:0 16px calc(96px + var(--safe-b))}
+.wrap.wide{max-width:1150px}
+.topbar{position:sticky;top:0;z-index:5;background:var(--gvsu-blue);color:var(--white);padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;display:flex;align-items:center;gap:8px}
+.topbar .inner{max-width:480px;width:100%;margin:0 auto;display:flex;align-items:center;gap:8px}
+.topbar.wide .inner{max-width:1150px}
+.topbar .title{flex:1;font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{background:transparent;border:0;color:var(--white);min-width:44px;min-height:44px;border-radius:8px;font-size:22px;cursor:pointer;padding:0 8px}
+.textbtn{background:transparent;border:2px solid rgba(255,255,255,.85);color:var(--white);min-height:44px;border-radius:8px;padding:0 14px;font-weight:600;cursor:pointer}
+.badge{background:var(--midnight);color:var(--white);border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:4px 10px;font-size:14px;font-weight:700;white-space:nowrap}
+h1{color:var(--midnight);font-size:30px;margin:28px 0 4px;line-height:1.15}
+h2{color:var(--midnight);font-size:21px;margin:24px 0 8px}
+h3{color:var(--midnight);font-size:17px;margin:16px 0 6px}
+.sub{color:var(--muted);margin:0 0 20px}
+.seg{display:flex;border:2px solid var(--gvsu-blue);border-radius:var(--radius);overflow:hidden}
+.seg button{flex:1;min-height:48px;border:0;background:var(--white);color:var(--gvsu-blue);font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--gvsu-blue);color:var(--white)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--gvsu-blue);background:var(--white);color:var(--gvsu-blue);font-weight:600;cursor:pointer;text-transform:capitalize}
+.chip[aria-pressed="true"]{background:var(--gvsu-blue);color:var(--white)}
+.levelline{color:var(--midnight);font-weight:600;margin:10px 0 20px}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;border-radius:var(--radius);border:2px solid var(--gvsu-blue);background:var(--white);color:var(--gvsu-blue);font-weight:700;font-size:18px;cursor:pointer;margin:10px 0;text-decoration:none;padding:0 16px;text-align:center}
+.btn.primary{background:var(--gvsu-blue);color:var(--white)}
+.btn:disabled{background:#e9ebf1;border-color:#9aa0b0;color:#4d5263;cursor:not-allowed}
+.footer{margin-top:28px;color:var(--muted);font-size:15px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.notice{background:var(--soft);border-left:4px solid var(--gvsu-blue);padding:10px 12px;border-radius:8px;margin:12px 0;font-size:15px}
+.prompt{font-size:20px;line-height:1.35;margin:22px 0 6px;color:var(--black)}
+.prompt strong{color:var(--midnight)}
+.hint{color:var(--muted);font-size:15px;margin:0 0 12px}
+.opts{display:flex;flex-direction:column;gap:12px;margin:14px 0}
+.opt{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:12px 14px;border:2px solid var(--line);border-radius:var(--radius);background:var(--white);color:var(--black);text-align:left;cursor:pointer;font-size:17px}
+.opt:hover{border-color:var(--gvsu-blue)}
+.opt input{width:24px;height:24px;flex:none;accent-color:var(--gvsu-blue);margin:0}
+.opt.sel{border-color:var(--gvsu-blue);background:#eef2fa}
+.opt .txt{flex:1}
+.opt .mark{flex:none;font-weight:700;font-size:14px;display:flex;align-items:center;gap:4px}
+.opt.is-correct{background:var(--correct-bg);border-color:var(--gvsu-blue);color:var(--midnight)}
+.opt.is-wrong{background:var(--wrong-bg);border-color:var(--wrong-border)}
+.opt.is-missed{background:var(--missed-bg);border:2px dashed var(--midnight)}
+.opt.is-dim{opacity:.72}
+.opt[disabled]{cursor:default}
+.banner{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius);font-weight:700;font-size:19px;margin:16px 0 4px}
+.banner.ok{background:var(--correct-bg);border:2px solid var(--gvsu-blue);color:var(--midnight)}
+.banner.no{background:var(--wrong-bg);border:2px solid var(--wrong-border);color:var(--black)}
+.encourage{font-weight:500;font-size:16px}
+.sticky{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:10px 16px calc(10px + var(--safe-b));z-index:6}
+.sticky .btn{max-width:448px;margin:0 auto}
+.card{border:2px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:14px 0;background:var(--white)}
+.card h3{margin:0 0 6px;font-size:20px}
+.card dl{margin:0}
+.card dt{font-weight:700;color:var(--midnight);margin-top:10px;font-size:15px;text-transform:uppercase;letter-spacing:.03em}
+.card dd{margin:2px 0 0}
+.card .note{background:var(--soft);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:15px}
+.meta{color:var(--muted);font-size:15px}
+details.mcard{border:2px solid var(--line);border-radius:var(--radius);margin:10px 0}
+details.mcard summary{min-height:48px;padding:12px 14px;cursor:pointer;font-weight:700;color:var(--midnight)}
+details.mcard .card{border:0;margin:0;padding-top:0}
+.toast{position:fixed;left:50%;top:76px;transform:translateX(-50%);background:var(--midnight);color:var(--white);padding:10px 18px;border-radius:999px;font-weight:700;z-index:20;transition:opacity .4s}
+.toast.hide{opacity:0}
+.stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.stat b{color:var(--midnight)}
+.list a{display:block;padding:10px 0;min-height:44px;border-bottom:1px solid var(--line);font-weight:600}
+.bar{height:12px;background:var(--track);border-radius:999px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--gvsu-blue)}
+.prow{display:block;width:100%;text-align:left;background:var(--white);border:0;border-bottom:1px solid var(--line);padding:12px 0;cursor:pointer;color:var(--black)}
+.prow .top{display:flex;justify-content:space-between;font-weight:600;margin-bottom:6px;text-transform:capitalize}
+.region{border:2px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin:12px 0}
+.flip{min-height:300px;border:2px solid var(--gvsu-blue);border-radius:16px;padding:20px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;background:var(--white);width:100%;text-align:left;color:var(--black);transition:transform .25s}
+.flip.front{align-items:center;text-align:center}
+.flip .big{font-size:28px;font-weight:800;color:var(--midnight);line-height:1.2}
+.flip .card{border:0;padding:0;margin:0}
+.navrow{display:flex;gap:10px;align-items:center;margin-top:12px}
+.navrow .btn{margin:0;flex:1}
+.navrow .count{min-width:72px;text-align:center;font-weight:700;color:var(--midnight)}
+.search{width:100%;min-height:48px;border:2px solid var(--line);border-radius:var(--radius);padding:0 14px}
+.results button{display:block;width:100%;text-align:left;min-height:44px;border:0;border-bottom:1px solid var(--line);background:var(--white);padding:8px 4px;cursor:pointer;color:var(--black)}
+.toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:600}
+.toggle input{width:22px;height:22px;accent-color:var(--gvsu-blue)}
+.confirm{border:2px solid var(--wrong-border);background:var(--wrong-bg);border-radius:var(--radius);padding:12px 14px}
+.confirm .row{display:flex;gap:10px}
+.confirm .row .btn{margin:8px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--soft);color:var(--midnight);position:sticky;top:0}
+td.low{background:var(--wrong-bg)}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line)}
+.rv-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0}
+.rv-controls select,.rv-controls input[type=text]{min-height:40px;border:2px solid var(--line);border-radius:8px;padding:0 10px}
+.small{font-size:14px}
+.preview{border:2px dashed var(--gvsu-blue);border-radius:var(--radius);padding:10px 14px;margin:10px 0;background:var(--white)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="live" class="sr" aria-live="polite"></div>
+<div id="app"></div>
+<script type="text/csv" id="muscle-data">
+muscle_id,muscle,region,location,location_ref,joints_crossed,origin,origin_bones,insertion,insertion_bones,actions,card_note,difficulty_adjust,include,data_version
+levator_scapulae,Levator scapulae,upper,superomedial,scapula,shoulder girdle,transverse processes C1-C4,cervical vertebrae,medial border of scapula above spine,scapula,shoulder girdle: elevation,,,,2026-10-30
+pectoralis_minor,Pectoralis minor,upper,anterior,scapula,shoulder girdle,anterior surface ribs 3-5,ribs,coracoid process of scapula,scapula,shoulder girdle: protraction; shoulder girdle: depression; shoulder girdle: downward rotation,,,,
+rhomboid,Rhomboid,upper,medial,scapula,shoulder girdle,spinous processes C7-T5,cervical vertebrae; thoracic vertebrae,medial border of scapula below spine,scapula,shoulder girdle: retraction; shoulder girdle: elevation; shoulder girdle: downward rotation,,,,
+serratus_anterior,Serratus anterior,upper,anterolateral,scapula,shoulder girdle,lateral surface of upper 9 ribs,ribs,"anterior, medial border of scapula",scapula,shoulder girdle: protraction; shoulder girdle: upward rotation,,,,
+trapezius_upper,Trapezius (upper),upper,superior,scapula,shoulder girdle; cervical spine,occipital protuberance,occipital bone,"posterior, lateral 1/3 of clavicle",clavicle,shoulder girdle: elevation; cervical spine: extension,,,,
+trapezius_mid,Trapezius (mid),upper,medial,scapula,shoulder girdle,spinous processes C7-T3,cervical vertebrae; thoracic vertebrae,acromion process; lateral 1/3 spine of scapula,scapula,shoulder girdle: retraction; shoulder girdle: elevation; shoulder girdle: upward rotation,,,,
+trapezius_lower,Trapezius (lower),upper,inferomedial,scapula,shoulder girdle,spinous processes T4-T12,thoracic vertebrae,medial/triangular base of spine of scapula,scapula,shoulder girdle: retraction; shoulder girdle: depression; shoulder girdle: upward rotation,,,,
+coracobrachialis,Coracobrachialis,upper,anteromedial,shoulder joint,shoulder,coracoid process of scapula,scapula,"medial, mid shaft of humerus",humerus,shoulder: flexion; shoulder: adduction; shoulder: horizontal adduction,,,,
+deltoid_anterior,Deltoid (anterior),upper,anterior,shoulder joint,shoulder,"anterior, lateral 1/3 of clavicle",clavicle,deltoid tuberosity of humerus,humerus,shoulder: flexion; shoulder: abduction; shoulder: horizontal adduction; shoulder: internal rotation,,,,
+deltoid_middle,Deltoid (middle),upper,superolateral,shoulder joint,shoulder,lateral acromion,scapula,deltoid tuberosity of humerus,humerus,shoulder: abduction,,,,
+deltoid_posterior,Deltoid (posterior),upper,posterior,shoulder joint,shoulder,spine of scapula,scapula,deltoid tuberosity of humerus,humerus,shoulder: extension; shoulder: abduction; shoulder: horizontal abduction; shoulder: external rotation,,,,
+infraspinatus,Infraspinatus,upper,posterior,shoulder joint,shoulder,infraspinous fossa,scapula,greater tubercle of humerus (posterior),humerus,shoulder: external rotation; shoulder: horizontal abduction,,,,
+latissimus_dorsi,Latissimus dorsi,upper,posteroinferior,shoulder joint,shoulder,spinous processes T6-T12; sacrum; posterior iliac crest,thoracic vertebrae; sacrum; ilium,medial lip of intertubercular groove of humerus,humerus,shoulder: extension; shoulder: adduction; shoulder: internal rotation,,,,
+pectoralis_major_upper,Pectoralis major (upper),upper,anterior,shoulder joint,shoulder,"medial, anterior clavicle",clavicle,lateral lip of intertubercular groove of humerus,humerus,shoulder: flexion; shoulder: horizontal adduction; shoulder: internal rotation; shoulder: adduction,,,,
+pectoralis_major_lower,Pectoralis major (lower),upper,anteroinferior,shoulder joint,shoulder,sternum; costal cartilage ribs 1-6,sternum; ribs,lateral lip of intertubercular groove of humerus,humerus,shoulder: horizontal adduction; shoulder: internal rotation; shoulder: adduction; shoulder: extension,Extension from flexed position to anatomical position.,,,
+subscapularis,Subscapularis,upper,anterior,shoulder joint,shoulder,subscapular fossa,scapula,lesser tubercle of humerus,humerus,shoulder: internal rotation,,,,
+supraspinatus,Supraspinatus,upper,superior,shoulder joint,shoulder,supraspinous fossa,scapula,greater tubercle of humerus (superior),humerus,shoulder: abduction,,,,
+teres_major,Teres major,upper,posteroinferior,shoulder joint,shoulder,"posterior, lateral border of scapula (inferior 1/3)",scapula,medial lip of intertubercular groove of humerus,humerus,shoulder: extension; shoulder: adduction; shoulder: internal rotation,,,,
+teres_minor,Teres minor,upper,posterior,shoulder joint,shoulder,"posterior, lateral border of scapula (mid-upper)",scapula,greater tubercle of humerus (posterior),humerus,shoulder: external rotation; shoulder: horizontal abduction,,,,
+anconeus,Anconeus,upper,posterolateral,elbow joint,elbow,posterior lateral condyle of humerus,humerus,"olecranon process of ulna; proximal, lateral ulna",ulna,elbow: extension,,,,
+biceps_brachii,Biceps brachii,upper,anterior,elbow joint,elbow; radioulnar,Long head: supraglenoid tubercle; Short head: coracoid process of scapula,scapula,radial tuberosity of radius,radius,elbow: flexion; forearm: supination,,,,
+brachialis,Brachialis,upper,anterior,elbow joint,elbow,"distal, anterior shaft of humerus",humerus,coronoid process of ulna,ulna,elbow: flexion,,,,
+brachioradialis,Brachioradialis,upper,anterolateral,elbow joint,elbow; radioulnar,lateral supracondylar ridge of humerus,humerus,styloid process of radius,radius,elbow: flexion; forearm: supination; forearm: pronation,"Supination to neutral, pronation to neutral.",,,
+pronator_quadratus,Pronator quadratus,upper,anterior,distal radioulnar joint,radioulnar,"distal, anterior ulna",ulna,"distal, anterior radius",radius,forearm: pronation,,,,
+pronator_teres,Pronator teres,upper,anteromedial,elbow joint,elbow; radioulnar,medial supracondylar ridge of humerus,humerus,"mid, lateral radius",radius,elbow: flexion; forearm: pronation,,,,
+supinator,Supinator,upper,posterolateral,elbow joint,radioulnar,lateral epicondyle of humerus,humerus,"proximal, lateral radius",radius,forearm: supination,,,,
+triceps_brachii,Triceps brachii,upper,posterior,elbow joint,elbow,"Long head: infraglenoid tubercle; Lateral head: upper, posterior humerus; Medial head: distal, posterior humerus",scapula; humerus,olecranon process of ulna,ulna,elbow: extension,,,,
+abductor_pollicis_longus,Abductor pollicis longus,upper,posterolateral,wrist joint,thumb joints; wrist,"posterior, mid-radius and ulna",radius; ulna,base of 1st metacarpal (dorsal-lateral),metacarpals,thumb: extension; wrist: radial deviation,Thumb extension at the CMC joint.,,,
+extensor_carpi_radialis_brevis,Extensor carpi radialis brevis,upper,posterolateral,wrist joint,wrist,lateral epicondyle of humerus,humerus,base of 3rd metacarpal (dorsal),metacarpals,wrist: extension; wrist: radial deviation,,,,
+extensor_carpi_radialis_longus,Extensor carpi radialis longus,upper,posterolateral,wrist joint,wrist,lateral epicondyle of humerus; lateral supracondylar ridge of humerus,humerus,base of 2nd metacarpal (dorsal),metacarpals,wrist: extension; wrist: radial deviation,,,,
+extensor_carpi_ulnaris,Extensor carpi ulnaris,upper,posteromedial,wrist joint,wrist,lateral epicondyle of humerus,humerus,base of 5th metacarpal (dorsal),metacarpals,wrist: extension; wrist: ulnar deviation,,,,
+extensor_digitorum,Extensor digitorum,upper,posterior,wrist joint,finger joints; wrist,lateral epicondyle of humerus,humerus,distal phalanx 2nd-5th digits (dorsal),phalanges (hand),fingers: extension; wrist: extension,Extension of 2nd-5th digits (all joints).,,,
+extensor_digiti_minimi,Extensor digiti minimi,upper,posteromedial,wrist joint,finger joints; wrist,lateral epicondyle of humerus,humerus,distal phalanx 5th digit (dorsal),phalanges (hand),fingers: extension; wrist: extension,Extension of 5th digit.,,,
+extensor_indicis,Extensor indicis,upper,posterior,wrist joint,finger joints; wrist,distal 1/3 of posterior ulna,ulna,distal phalanx 2nd digit (dorsal),phalanges (hand),fingers: extension; wrist: extension,Extension of 2nd digit.,,,
+extensor_pollicis_brevis,Extensor pollicis brevis,upper,posterolateral,wrist joint,thumb joints; wrist,"posterior, mid-distal radius",radius,proximal phalanx of thumb (dorsal),phalanges (hand),thumb: extension; wrist: radial deviation,Thumb extension at the CMC and MCP joints.,,,
+extensor_pollicis_longus,Extensor pollicis longus,upper,posterolateral,wrist joint,thumb joints; wrist,"posterior, mid-distal ulna",ulna,distal phalanx of thumb (dorsal),phalanges (hand),thumb: extension; wrist: radial deviation,Thumb extension at all joints.,,,
+flexor_carpi_radialis,Flexor carpi radialis,upper,anterolateral,wrist joint,wrist,medial epicondyle of humerus,humerus,base of 2nd & 3rd metacarpals (palmar),metacarpals,wrist: flexion; wrist: radial deviation,,,,
+flexor_carpi_ulnaris,Flexor carpi ulnaris,upper,anteromedial,wrist joint,wrist,medial epicondyle of humerus,humerus,pisiform; hamate; base of 5th metacarpal (palmar),pisiform; hamate; metacarpals,wrist: flexion; wrist: ulnar deviation,,,,
+flexor_digitorum_profundus,Flexor digitorum profundus,upper,anterior,wrist joint,wrist; finger joints,"proximal, anterior ulna",ulna,distal phalanx 2nd-5th digits (palmar),phalanges (hand),wrist: flexion; fingers: flexion,Flexion of 2nd-5th digits (all joints).,,,
+flexor_digitorum_superficialis,Flexor digitorum superficialis,upper,anterior,wrist joint,wrist; finger joints,medial epicondyle of humerus,humerus,middle phalanx 2nd-5th digits (palmar),phalanges (hand),wrist: flexion; fingers: flexion,"Flexion of 2nd-5th digits (MCP, PIP joints).",,,
+flexor_pollicis_longus,Flexor pollicis longus,upper,anterolateral,wrist joint,wrist; thumb joints,mid-anterior surface of radius and ulna,radius; ulna,distal phalanx thumb (palmar),phalanges (hand),wrist: flexion; thumb: flexion,Thumb flexion at all joints.,,,
+palmaris_longus,Palmaris longus,upper,anterior,wrist joint,wrist,medial epicondyle of humerus,humerus,palmar aponeurosis of 2nd-5th metacarpals,metacarpals,wrist: flexion,,,,
+adductor_brevis,Adductor brevis,lower,inferomedial,hip joint,hip,inferior pubic ramus,pubis,proximal linea aspera,femur,hip: adduction,,,,
+adductor_longus,Adductor longus,lower,inferomedial,hip joint,hip,anterior pubic crest,pubis,middle 1/3 of linea aspera,femur,hip: adduction,,,,
+adductor_magnus,Adductor magnus,lower,inferomedial,hip joint,hip,inferior pubic ramus; ischial tuberosity,pubis; ischium,adductor tubercle; linea aspera,femur,hip: extension; hip: adduction,,,,
+biceps_femoris,Biceps femoris,lower,posterior,hip joint,hip; knee,Long head: ischial tuberosity; Short head: lower 1/2 linea aspera,ischium; femur,head of fibula; lateral condyle of tibia,fibula; tibia,hip: extension; knee: flexion; knee: external rotation; pelvis: posterior tilt,,,,
+deep_lateral_rotators,Deep lateral rotators,lower,posterior,hip joint,hip,NA,NA,NA,NA,hip: external rotation,Origin and insertion not required for this course.,,,
+gluteus_maximus,Gluteus maximus,lower,posterior,hip joint,hip,posterior ilium; sacrum; lumbar fascia,ilium; sacrum,gluteal tuberosity of greater trochanter; iliotibial band,femur,hip: extension; hip: external rotation,,,,
+gluteus_medius,Gluteus medius,lower,superolateral,hip joint,hip,"superior, lateral ilium",ilium,greater trochanter of femur,femur,hip: abduction; pelvis: ipsilateral lateral tilt; hip: internal rotation; hip: external rotation,Anterior fibers: internal rotation of hip. Posterior fibers: external rotation of hip.,,,
+gluteus_minimus,Gluteus minimus,lower,superolateral,hip joint,hip,"inferior, lateral ilium",ilium,greater trochanter of femur,femur,hip: abduction; hip: internal rotation,,,,
+gracilis,Gracilis,lower,inferomedial,hip joint,hip; knee,inferior pubic ramus,pubis,anteromedial proximal tibia,tibia,hip: adduction; knee: flexion,,,,
+iliopsoas,Iliopsoas,lower,anterior,hip joint,hip; lumbar spine,transverse processes L1-L5; iliac fossa,lumbar vertebrae; ilium,lesser trochanter of femur,femur,hip: flexion; lumbar spine: flexion; pelvis: anterior tilt,,,,
+pectineus,Pectineus,lower,inferomedial,hip joint,hip,superior pubic ramus,pubis,lesser trochanter of femur; pectineal line of femur,femur,hip: flexion; hip: adduction,,,,
+rectus_femoris,Rectus femoris,lower,anterior,hip joint,hip; knee,anterior inferior iliac spine (AIIS),ilium,tibial tuberosity (via patellar tendon),tibia,hip: flexion; knee: extension; pelvis: anterior tilt,,,,
+sartorius,Sartorius,lower,anterior,hip joint,hip; knee,anterior superior iliac spine (ASIS),ilium,anteromedial proximal tibia,tibia,hip: flexion; hip: abduction; hip: external rotation; knee: flexion,,,,
+semimembranosus,Semimembranosus,lower,posterior,hip joint,hip; knee,ischial tuberosity,ischium,posteromedial medial tibial condyle,tibia,hip: extension; knee: flexion; knee: internal rotation; pelvis: posterior tilt,,,,
+semitendinosus,Semitendinosus,lower,posterior,hip joint,hip; knee,ischial tuberosity,ischium,anteromedial proximal tibia,tibia,hip: extension; knee: flexion; knee: internal rotation; pelvis: posterior tilt,,,,
+tensor_fascia_latae,Tensor fascia latae,lower,anterolateral,hip joint,hip,anterior iliac crest,ilium,anterolateral tibial condyle (Gerdy's tubercle),tibia,hip: flexion; hip: abduction; hip: internal rotation; pelvis: ipsilateral lateral tilt,,,,
+popliteus,Popliteus,lower,posterior,knee joint,knee,"posterior, lateral condyle of femur",femur,"proximal, posteromedial tibia",tibia,knee: flexion; knee: internal rotation,,,,
+vastus_intermedius,Vastus intermedius,lower,anterior,knee joint,knee,upper 2/3 anterior femur,femur,tibial tuberosity (via patellar tendon),tibia,knee: extension,,,,
+vastus_lateralis,Vastus lateralis,lower,anterolateral,knee joint,knee,intertrochanteric line; linea aspera,femur,tibial tuberosity (via patellar tendon),tibia,knee: extension,,,,
+vastus_medialis,Vastus medialis,lower,anteromedial,knee joint,knee,linea aspera,femur,tibial tuberosity (via patellar tendon),tibia,knee: extension,,,,
+extensor_digitorum_longus,Extensor digitorum longus,lower,anterolateral,ankle joint,ankle; subtalar; toe joints,upper 2/3 anterior fibula,fibula,distal phalanx digits 2-5 (dorsal),phalanges (foot),ankle: dorsiflexion; foot: eversion; toes: extension,Extension of 2nd-5th digits (all joints).,,,
+extensor_hallucis_longus,Extensor hallucis longus,lower,anterior,ankle joint,ankle; toe joints,middle 2/3 anterior fibula,fibula,distal phalanx of great toe (dorsal),phalanges (foot),ankle: dorsiflexion; great toe: extension,Extension of great toe (all joints).,,,
+flexor_digitorum_longus,Flexor digitorum longus,lower,posteromedial,ankle joint,ankle; subtalar; toe joints,middle 1/3 posterior tibia,tibia,distal phalanx digits 2-5 (plantar),phalanges (foot),ankle: plantarflexion; foot: inversion; toes: flexion,Flexion of 2nd-5th digits (all joints).,,,
+flexor_hallucis_longus,Flexor hallucis longus,lower,posteromedial,ankle joint,ankle; subtalar; toe joints,middle 2/3 posterior fibula,fibula,distal phalanx of great toe (plantar),phalanges (foot),ankle: plantarflexion; foot: inversion; great toe: flexion,Flexion of great toe (all joints).,,,
+gastrocnemius,Gastrocnemius,lower,posterior,ankle joint,knee; ankle,posterior medial & lateral femoral condyles,femur,calcaneus (via Achilles tendon),calcaneus,knee: flexion; ankle: plantarflexion,,,,
+fibularis_brevis,Fibularis (peroneus) brevis,lower,posterolateral,ankle joint,ankle; subtalar,middle 2/3 lateral fibula,fibula,base of 5th metatarsal (plantar),metatarsals,ankle: plantarflexion; foot: eversion,,,,
+fibularis_longus,Fibularis (peroneus) longus,lower,posterolateral,ankle joint,ankle; subtalar,head and upper 2/3 lateral fibula,fibula,"base 1st metatarsal, medial cuneiform (plantar)",metatarsals; cuneiforms,ankle: plantarflexion; foot: eversion,,,,
+fibularis_tertius,Fibularis (peroneus) tertius,lower,anterolateral,ankle joint,ankle; subtalar,distal 1/3 anterior fibula,fibula,base of 5th metatarsal (dorsal),metatarsals,ankle: dorsiflexion; foot: eversion,,,,
+soleus,Soleus,lower,posterior,ankle joint,ankle,"posterior, proximal tibia and fibula",tibia; fibula,calcaneus (via Achilles tendon),calcaneus,ankle: plantarflexion,,,,
+tibialis_anterior,Tibialis anterior,lower,anteromedial,ankle joint,ankle; subtalar,upper 2/3 lateral tibia,tibia,"base 1st metatarsal, medial cuneiform (medial surface)",metatarsals; cuneiforms,ankle: dorsiflexion; foot: inversion,,,,
+tibialis_posterior,Tibialis posterior,lower,posteromedial,ankle joint,ankle; subtalar,"posterior, proximal tibia and fibula",tibia; fibula,navicular; cuboid; cuneiforms; base metatarsals 2-4,navicular; cuboid; cuneiforms; metatarsals,ankle: plantarflexion; foot: inversion,,,,
+erector_spinae,Erector spinae,lower,posterior,lumbar spine,cervical spine; lumbar spine,medial iliac crest; spinous & transverse processes; sacrum,ilium; vertebrae; sacrum,posterior ribs; transverse processes; mastoid process,ribs; vertebrae; temporal bone,cervical spine: extension; lumbar spine: extension; pelvis: anterior tilt; cervical spine: ipsilateral lateral flexion; lumbar spine: ipsilateral lateral flexion; cervical spine: ipsilateral rotation; lumbar spine: ipsilateral rotation,"Bilateral: extension of cervical/lumbar spine, anterior tilt of pelvis. Unilateral: ipsilateral lateral flexion and rotation of cervical/lumbar spine.",,,
+external_oblique,External oblique,lower,anterolateral,lumbar spine,lumbar spine,lower 8 ribs,ribs,inguinal ligament; iliac crest; fascia of rectus abdominis,ilium,lumbar spine: flexion; pelvis: posterior tilt; lumbar spine: ipsilateral lateral flexion; lumbar spine: contralateral rotation; pelvis: contralateral lateral tilt,"Bilateral: flexion of lumbar spine, posterior tilt of pelvis. Unilateral: ipsilateral lateral flexion, contralateral rotation of lumbar spine, contralateral lateral tilt of pelvis.",,,
+internal_oblique,Internal oblique,lower,anterolateral,lumbar spine,lumbar spine,inguinal ligament; iliac crest; lumbar fascia,ilium,costal cartilage ribs 8-10; linea alba,ribs,lumbar spine: flexion; pelvis: posterior tilt; lumbar spine: ipsilateral lateral flexion; lumbar spine: ipsilateral rotation; pelvis: contralateral lateral tilt,"Bilateral: flexion of lumbar spine, posterior tilt of pelvis. Unilateral: ipsilateral lateral flexion and rotation of lumbar spine, contralateral lateral tilt of pelvis.",,,
+quadratus_lumborum,Quadratus lumborum,lower,posterolateral,lumbar spine,lumbar spine,posterior iliac crest,ilium,12th rib; transverse processes L1-L4,ribs; lumbar vertebrae,lumbar spine: extension; pelvis: anterior tilt; lumbar spine: ipsilateral lateral flexion; pelvis: contralateral lateral tilt,"Bilateral: extension of lumbar spine, anterior tilt of pelvis. Unilateral: ipsilateral lateral flexion of lumbar spine, contralateral lateral tilt of pelvis.",,,
+rectus_abdominis,Rectus abdominis,lower,anterior,lumbar spine,lumbar spine,pubic crest,pubis,xiphoid process; costal cartilage ribs 5-7,sternum; ribs,lumbar spine: flexion; pelvis: posterior tilt,,,,
+splenius_capitis,Splenius capitis,lower,posterior,cervical spine,cervical spine,spinous processes C7-T4,cervical vertebrae; thoracic vertebrae,mastoid process,temporal bone,cervical spine: extension; cervical spine: ipsilateral lateral flexion; cervical spine: ipsilateral rotation,Bilateral: extension of cervical spine. Unilateral: ipsilateral lateral flexion and rotation of cervical spine.,,,
+splenius_cervicis,Splenius cervicis,lower,posterior,cervical spine,cervical spine,spinous processes T3-T6,thoracic vertebrae,transverse processes C1-C3,cervical vertebrae,cervical spine: extension; cervical spine: ipsilateral lateral flexion; cervical spine: ipsilateral rotation,Bilateral: extension of cervical spine. Unilateral: ipsilateral lateral flexion and rotation of cervical spine.,,,
+sternocleidomastoid,Sternocleidomastoid,lower,anterolateral,cervical spine,cervical spine,manubrium of sternum; medial clavicle,sternum; clavicle,mastoid process,temporal bone,cervical spine: flexion; cervical spine: ipsilateral lateral flexion; cervical spine: contralateral rotation,Bilateral: flexion of cervical spine. Unilateral: ipsilateral lateral flexion and contralateral rotation of cervical spine.,,,
+transverse_abdominis,Transverse abdominis,lower,anterolateral,lumbar spine,,inguinal ligament; iliac crest; lumbar fascia,ilium,pubic crest; linea alba,pubis,respiration: forced expiration,,,no,
+</script>
+<script>
+"use strict";
+/* ================= CONFIG ================= */
+const CONFIG = {
+  // Paste the published Google Sheet CSV link here (File > Share > Publish to web > CSV).
+  // Leave empty to use only the muscle data built into this page.
+  DATA_URL: "",
+  DATA_CACHE_KEY: "oia-trainer-data-cache",
+  STATE_KEY: "oia-trainer-v1",
+  FETCH_TIMEOUT_MS: 6000,
+  PROMOTE_WINDOW: 5, PROMOTE_MIN_CORRECT: 4, DEMOTE_CONSECUTIVE_MISSES: 2,
+  MISSED_DELAY_MIN: 3, MISSED_DELAY_MAX: 5, BOX1_DELAY: 10, BOX2_DELAY: 25,
+  RETENTION_MIX: 0.2, SAME_MUSCLE_GAP: 3,
+  T6_EXCLUDED_JOINTS: ["pelvis"],
+  SCORE: { reverseDirection: 2, landmarkOrAction: 1,
+    similarity: { none: 0, low: 0, medium: 1, high: 2 },
+    correctShown: { one: 0, twoToThree: 1, fourPlus: 2 } },
+  LOCATION_TERMS: ["anterior","posterior","medial","lateral","superior","inferior","anteromedial","anterolateral","posteromedial","posterolateral","superomedial","superolateral","inferomedial","inferolateral","anterosuperior","anteroinferior","posterosuperior","posteroinferior"]
+};
+const TYPES = ["T1","T2","T3","T4","T5","T6","T7","T8","T9"];
+const TYPE_NAMES = {T1:"Muscle → origin",T2:"Muscle → insertion",T3:"Muscle → bones",T4:"Muscle → location",T5:"Muscle → actions",T6:"Action → muscles",T7:"Site → muscles",T8:"Bone → muscles",T9:"Muscle → joints crossed"};
+
+/* ================= HELPERS ================= */
+const norm = s => String(s == null ? "" : s).toLowerCase().replace(/\s+/g, " ").trim();
+const splitList = s => String(s || "").split(";").map(x => x.trim()).filter(Boolean);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const cap = s => { s = String(s || ""); return s.charAt(0).toUpperCase() + s.slice(1); };
+const rand = Math.random;
+function shuffle(a, r = rand) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function sample(a, n, r = rand) { return shuffle(a, r).slice(0, n); }
+function pick(a, r = rand) { return a[Math.floor(r() * a.length)]; }
+
+/* ================= STORAGE ================= */
+const store = (() => {
+  let ok = true, mem = {};
+  try { const k = "__oia_test"; localStorage.setItem(k, "1"); localStorage.removeItem(k); } catch (e) { ok = false; }
+  return {
+    available: () => ok,
+    get(k) { try { return ok ? localStorage.getItem(k) : (k in mem ? mem[k] : null); } catch (e) { return mem[k] ?? null; } },
+    set(k, v) { try { if (ok) localStorage.setItem(k, v); else mem[k] = v; } catch (e) { mem[k] = v; } },
+    remove(k) { try { if (ok) localStorage.removeItem(k); delete mem[k]; } catch (e) { delete mem[k]; } }
+  };
+})();
+
+/* ================= CSV ================= */
+function parseCSV(text) {
+  text = String(text).replace(/^﻿/, "");
+  const rows = []; let row = [], field = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+      else field += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(field); rows.push(row); row = []; field = ""; }
+    else field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+function parseSite(p) {
+  const i = p.indexOf(":");
+  return i >= 0 ? { label: p.slice(0, i).trim(), name: p.slice(i + 1).trim() } : { label: null, name: p.trim() };
+}
+function parseMuscleCsv(text) {
+  const rows = parseCSV(text);
+  const warnings = [], muscles = [];
+  if (!rows.length) return { muscles, warnings: [{ row: 0, muscleId: null, message: "File is empty" }], dataVersion: null };
+  const head = rows[0].map(norm);
+  const col = name => head.indexOf(name);
+  const get = (r, name) => { const i = col(name); return i >= 0 && r[i] != null ? String(r[i]).trim() : ""; };
+  const seen = new Set();
+  let dataVersion = null;
+  const terms = new Set(CONFIG.LOCATION_TERMS);
+  rows.slice(1).forEach((r, idx) => {
+    const rowNum = idx + 2;
+    if (idx === 0) dataVersion = get(r, "data_version") || null;
+    const id = get(r, "muscle_id");
+    if (norm(get(r, "include")) === "no") return;
+    const warn = m => warnings.push({ row: rowNum, muscleId: id || null, message: m });
+    const origin = get(r, "origin"), insertion = get(r, "insertion");
+    const required = ["muscle_id","muscle","region","location","location_ref","origin","insertion","actions"];
+    const missing = required.filter(f => !get(r, f));
+    if (missing.length) { warn("Skipped: missing " + missing.join(", ")); return; }
+    const region = norm(get(r, "region"));
+    if (region !== "upper" && region !== "lower") { warn('Skipped: region must be "upper" or "lower" (found "' + get(r, "region") + '")'); return; }
+    const location = norm(get(r, "location"));
+    if (!terms.has(location)) { warn('Skipped: location "' + get(r, "location") + '" is not in the location terms list'); return; }
+    const oNA = norm(origin) === "na", iNA = norm(insertion) === "na";
+    if (oNA !== iNA) { warn("Skipped: origin and insertion must both be NA or both be filled in"); return; }
+    const tested = !oNA;
+    const ob = splitList(get(r, "origin_bones")), ib = splitList(get(r, "insertion_bones"));
+    if (tested && (!ob.length || !ib.length)) { warn("Skipped: missing origin_bones or insertion_bones"); return; }
+    if (seen.has(norm(id))) { warn('Skipped: duplicate muscle_id "' + id + '"'); return; }
+    const actions = [];
+    splitList(get(r, "actions")).forEach(p => {
+      const i = p.indexOf(":");
+      if (i < 0) { warn('Action "' + p + '" has no "joint:" part and was skipped'); return; }
+      const joint = p.slice(0, i).trim(), action = p.slice(i + 1).trim();
+      if (!joint || !action) { warn('Action "' + p + '" is incomplete and was skipped'); return; }
+      actions.push({ joint, action, key: norm(joint) + ": " + norm(action) });
+    });
+    if (!actions.length) { warn("Skipped: no valid actions"); return; }
+    let adj = get(r, "difficulty_adjust");
+    let difficultyAdjust = 0;
+    if (adj !== "") { const n = Number(adj); if (n === -1 || n === 0 || n === 1) difficultyAdjust = n; else warn('difficulty_adjust "' + adj + '" must be -1, 0, or 1; using 0'); }
+    seen.add(norm(id));
+    muscles.push({
+      id: norm(id).replace(/\s+/g, "_"), name: get(r, "muscle"), region, location,
+      locationRef: get(r, "location_ref"),
+      jointsCrossed: splitList(get(r, "joints_crossed")),
+      attachmentsTested: tested,
+      originRaw: origin, originSites: tested ? splitList(origin).map(parseSite) : [], originBones: tested ? ob : [],
+      insertionRaw: insertion, insertionSites: tested ? splitList(insertion).map(parseSite) : [], insertionBones: tested ? ib : [],
+      actions, cardNote: get(r, "card_note") || null, difficultyAdjust
+    });
+  });
+  return { muscles, warnings, dataVersion };
+}
+
+/* ================= DATA LOADING ================= */
+async function loadData() {
+  const embedded = document.getElementById("muscle-data").textContent;
+  const tryParse = (text, source) => { const d = parseMuscleCsv(text); return d.muscles.length ? { data: d, source } : null; };
+  if (CONFIG.DATA_URL) {
+    try {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), CONFIG.FETCH_TIMEOUT_MS);
+      const res = await fetch(CONFIG.DATA_URL, { signal: ctl.signal, cache: "no-store" });
+      clearTimeout(t);
+      if (res.ok) {
+        const text = await res.text(); const got = tryParse(text, "sheet");
+        if (got) { store.set(CONFIG.DATA_CACHE_KEY, JSON.stringify({ text, at: Date.now() })); return got; }
+      }
+    } catch (e) { /* fall through */ }
+    try { const c = JSON.parse(store.get(CONFIG.DATA_CACHE_KEY) || "null"); if (c && c.text) { const got = tryParse(c.text, "cache"); if (got) return got; } } catch (e) {}
+  }
+  const got = tryParse(embedded, "bundled");
+  if (got) return got;
+  throw new Error("No muscle data could be loaded");
+}
+
+/* ================= INDEX (derived data) ================= */
+function buildIndex(muscles) {
+  const ix = { muscles, byId: {}, pairs: new Map(), sites: new Map(), bones: new Map(), cross: new Map(), actionJointRegion: {}, crossRegion: {}, regionJoints: { upper: [], lower: [] } };
+  const regCount = (obj, key, region) => { obj[key] = obj[key] || { upper: 0, lower: 0 }; obj[key][region]++; };
+  const ajc = {}, cc = {};
+  muscles.forEach(m => {
+    ix.byId[m.id] = m;
+    m.originBoneKeys = new Set(m.originBones.map(norm));
+    m.insertionBoneKeys = new Set(m.insertionBones.map(norm));
+    m.boneKeys = new Set([...m.originBoneKeys, ...m.insertionBoneKeys]);
+    m.siteKeys = new Set([...m.originSites, ...m.insertionSites].map(s => norm(s.name)));
+    m.pairKeys = new Set(m.actions.map(a => a.key));
+    m.actionJointKeys = new Set(m.actions.map(a => norm(a.joint)));
+    m.crossKeys = new Set(m.jointsCrossed.map(norm));
+    m.actions.forEach(a => {
+      if (!ix.pairs.has(a.key)) ix.pairs.set(a.key, { key: a.key, joint: norm(a.joint), jointDisplay: a.joint, action: a.action, muscles: new Set() });
+      ix.pairs.get(a.key).muscles.add(m.id);
+      regCount(ajc, norm(a.joint), m.region);
+    });
+    if (m.attachmentsTested) {
+      [...m.originSites, ...m.insertionSites].forEach(s => {
+        const k = norm(s.name);
+        if (!ix.sites.has(k)) ix.sites.set(k, { key: k, display: s.name, muscles: new Set() });
+        ix.sites.get(k).muscles.add(m.id);
+      });
+      [...m.originBones, ...m.insertionBones].forEach(b => {
+        const k = norm(b);
+        if (!ix.bones.has(k)) ix.bones.set(k, { key: k, display: b, muscles: new Set() });
+        ix.bones.get(k).muscles.add(m.id);
+      });
+    }
+    m.jointsCrossed.forEach(j => {
+      const k = norm(j);
+      if (!ix.cross.has(k)) ix.cross.set(k, { key: k, display: j, muscles: new Set() });
+      ix.cross.get(k).muscles.add(m.id);
+      regCount(cc, k, m.region);
+      if (!ix.regionJoints[m.region].includes(k)) ix.regionJoints[m.region].push(k);
+    });
+  });
+  const maj = c => (c.lower > c.upper ? "lower" : "upper");
+  Object.keys(ajc).forEach(k => ix.actionJointRegion[k] = maj(ajc[k]));
+  Object.keys(cc).forEach(k => ix.crossRegion[k] = maj(cc[k]));
+  return ix;
+}
+
+/* ================= GENERATOR ================= */
+const LOC_COMP = {anterior:["A"],posterior:["P"],medial:["M"],lateral:["L"],superior:["S"],inferior:["I"],anteromedial:["A","M"],anterolateral:["A","L"],posteromedial:["P","M"],posterolateral:["P","L"],superomedial:["S","M"],superolateral:["S","L"],inferomedial:["I","M"],inferolateral:["I","L"],anterosuperior:["A","S"],anteroinferior:["A","I"],posterosuperior:["P","S"],posteroinferior:["P","I"]};
+const OPP = {A:"P",P:"A",M:"L",L:"M",S:"I",I:"S"};
+function locLevel(answer, term) {
+  const a = LOC_COMP[answer] || [], t = LOC_COMP[term] || [];
+  const shared = t.filter(x => a.includes(x)).length;
+  if (shared >= 1) return "high";
+  if (t.some(x => a.includes(OPP[x]))) return "low";
+  return "medium";
+}
+function inScope(m, scope) {
+  if (m.region !== scope.region) return false;
+  if (!scope.joints || !scope.joints.length) return true;
+  return scope.joints.some(j => m.crossKeys.has(j));
+}
+const LEVELS = ["low", "medium", "high"];
+const EASIER = { high: ["medium", "low"], medium: ["low"], low: [] };
+
+function makeVariants(base, ix, skipped) {
+  // base: {type, subjectKey, subjectLabel, correct:[keys], display:(k)=>text, cands:{low,medium,high}, multi, related, preferCorrect?}
+  const correctCount = base.correct.length;
+  const shownCorrect = base.multi ? Math.min(correctCount, 4) : 1;
+  const need = base.multi ? Math.max(2, 5 - shownCorrect) : 3;
+  const out = new Map();
+  for (const L of LEVELS) {
+    const plan = []; let left = need;
+    for (const lv of [L, ...EASIER[L]]) {
+      const pool = base.cands[lv]; const take = Math.min(left, pool.length);
+      if (take > 0) plan.push({ level: lv, take, pool }); left -= take;
+      if (!left) break;
+    }
+    if (left > 0) continue;
+    // majority level, ties go to easier
+    const order = { low: 0, medium: 1, high: 2 };
+    let actual = plan[0].level, best = -1;
+    plan.forEach(p => { if (p.take > best || (p.take === best && order[p.level] < order[actual])) { best = p.take; actual = p.level; } });
+    if (out.has(actual)) continue;
+    const baseId = base.type + ":" + base.subjectKey;
+    const v = {
+      variantId: baseId + ":" + actual, baseId, type: base.type, subjectKey: base.subjectKey, subjectLabel: base.subjectLabel,
+      subjectMuscleId: base.subjectMuscleId || null, refLabel: base.refLabel || null,
+      actualSimilarity: actual, correct: base.correct, plan: plan.map(p => ({ level: p.level, take: p.take, pool: p.pool })),
+      display: base.display, multi: base.multi, correctCount, shownCorrectCount: shownCorrect,
+      relatedMuscleIds: base.related, preferCorrect: base.preferCorrect || null
+    };
+    v.score = scoreVariant(v, ix);
+    v.tier = v.score.tier;
+    out.set(actual, v);
+  }
+  if (!out.size) skipped.push({ baseId: base.type + ":" + base.subjectKey, reason: "Not enough wrong answers available to build options" });
+  return [...out.values()];
+}
+function classify(keys, fn) {
+  const c = { low: [], medium: [], high: [] };
+  keys.forEach(k => c[fn(k)].push(k));
+  return c;
+}
+const genCache = new Map();
+function generateVariants(ix, scope) {
+  const key = scope.region + "|" + (scope.joints && scope.joints.length ? scope.joints.slice().sort().join(",") : "all");
+  if (genCache.has(key)) return genCache.get(key);
+  const variants = [], skipped = [];
+  const M = ix.muscles;
+  const scoped = M.filter(m => inScope(m, scope));
+  const scopedIds = new Set(scoped.map(m => m.id));
+  const tested = M.filter(m => m.attachmentsTested);
+  const muscleName = id => ix.byId[id].name;
+  const add = base => variants.push(...makeVariants(base, ix, skipped));
+
+  scoped.forEach(m => {
+    if (m.attachmentsTested) {
+      // T1 / T2
+      [["T1", "originRaw", "originBoneKeys"], ["T2", "insertionRaw", "insertionBoneKeys"]].forEach(([type, field, boneField]) => {
+        const correctKey = norm(m[field]);
+        const owners = new Map();
+        tested.forEach(o => { const k = norm(o[field]); if (k === correctKey) return; if (!owners.has(k)) owners.set(k, { display: o[field], ms: [] }); owners.get(k).ms.push(o); });
+        const disp = new Map([[correctKey, m[field]], ...[...owners].map(([k, v]) => [k, v.display])]);
+        const cands = classify([...owners.keys()], k => {
+          const ms = owners.get(k).ms;
+          if (ms.some(o => [...o[boneField]].some(b => m[boneField].has(b)))) return "high";
+          if (ms.some(o => o.region === m.region)) return "medium";
+          return "low";
+        });
+        add({ type, subjectKey: m.id, subjectLabel: m.name, subjectMuscleId: m.id, correct: [correctKey], display: k => disp.get(k), cands, multi: false, related: [m.id] });
+      });
+      // T3
+      const allBones = [...ix.bones.keys()];
+      const cands3 = classify(allBones.filter(b => !m.boneKeys.has(b)), b => {
+        const ms = [...ix.bones.get(b).muscles].map(id => ix.byId[id]);
+        if (ms.some(o => [...o.crossKeys].some(j => m.crossKeys.has(j)))) return "high";
+        if (ms.some(o => o.region === m.region)) return "medium";
+        return "low";
+      });
+      add({ type: "T3", subjectKey: m.id, subjectLabel: m.name, subjectMuscleId: m.id, correct: [...m.boneKeys], display: k => ix.bones.get(k).display, cands: cands3, multi: true, related: [m.id] });
+    }
+    // T4
+    const cands4 = classify(CONFIG.LOCATION_TERMS.filter(t => t !== m.location), t => locLevel(m.location, t));
+    add({ type: "T4", subjectKey: m.id, subjectLabel: m.name, subjectMuscleId: m.id, refLabel: m.locationRef, correct: [m.location], display: k => k, cands: cands4, multi: false, related: [m.id] });
+    // T5
+    const cands5 = classify([...ix.pairs.keys()].filter(p => !m.pairKeys.has(p)), p => {
+      const pr = ix.pairs.get(p);
+      if (m.actionJointKeys.has(pr.joint)) return "high";
+      if (ix.actionJointRegion[pr.joint] === m.region) return "medium";
+      return "low";
+    });
+    add({ type: "T5", subjectKey: m.id, subjectLabel: m.name, subjectMuscleId: m.id, correct: [...m.pairKeys], display: k => { const p = ix.pairs.get(k); return cap(p.jointDisplay) + ": " + p.action; }, cands: cands5, multi: true, related: [m.id] });
+    // T9
+    if (m.crossKeys.size) {
+      const cands9 = classify([...ix.cross.keys()].filter(j => !m.crossKeys.has(j)), j => {
+        const ms = [...ix.cross.get(j).muscles].map(id => ix.byId[id]);
+        if (ms.some(o => [...o.crossKeys].some(x => m.crossKeys.has(x)))) return "high";
+        if (ix.crossRegion[j] === m.region) return "medium";
+        return "low";
+      });
+      add({ type: "T9", subjectKey: m.id, subjectLabel: m.name, subjectMuscleId: m.id, correct: [...m.crossKeys], display: k => cap(ix.cross.get(k).display), cands: cands9, multi: true, related: [m.id] });
+    }
+  });
+  // T6
+  const excluded = new Set(CONFIG.T6_EXCLUDED_JOINTS.map(norm));
+  const pairSubjects = new Set();
+  scoped.forEach(m => m.pairKeys.forEach(p => { if (!excluded.has(ix.pairs.get(p).joint)) pairSubjects.add(p); }));
+  pairSubjects.forEach(p => {
+    const pr = ix.pairs.get(p);
+    const correct = [...pr.muscles];
+    const reg = ix.actionJointRegion[pr.joint];
+    const cands = classify(M.filter(o => !pr.muscles.has(o.id)).map(o => o.id), id => {
+      const o = ix.byId[id];
+      if (o.actionJointKeys.has(pr.joint)) return "high";
+      if (o.region === reg) return "medium";
+      return "low";
+    });
+    add({ type: "T6", subjectKey: p, subjectLabel: pr.jointDisplay + " " + pr.action, correct, display: muscleName, cands, multi: true, related: correct, preferCorrect: scopedIds });
+  });
+  // T7
+  const siteSubjects = new Set(); scoped.forEach(m => m.siteKeys.forEach(s => siteSubjects.add(s)));
+  siteSubjects.forEach(s => {
+    const site = ix.sites.get(s); if (!site) return;
+    const correct = [...site.muscles]; const cm = correct.map(id => ix.byId[id]);
+    const cands = classify(tested.filter(o => !site.muscles.has(o.id)).map(o => o.id), id => {
+      const o = ix.byId[id];
+      if (cm.some(c => [...c.boneKeys].some(b => o.boneKeys.has(b)))) return "high";
+      if (o.region === scope.region) return "medium";
+      return "low";
+    });
+    add({ type: "T7", subjectKey: s, subjectLabel: site.display, correct, display: muscleName, cands, multi: true, related: correct, preferCorrect: scopedIds });
+  });
+  // T8
+  const boneSubjects = new Set(); scoped.forEach(m => m.boneKeys.forEach(b => boneSubjects.add(b)));
+  boneSubjects.forEach(b => {
+    const bone = ix.bones.get(b); if (!bone) return;
+    const correct = [...bone.muscles]; const cm = correct.map(id => ix.byId[id]);
+    const cands = classify(tested.filter(o => !bone.muscles.has(o.id)).map(o => o.id), id => {
+      const o = ix.byId[id];
+      if (cm.some(c => [...c.crossKeys].some(j => o.crossKeys.has(j)))) return "high";
+      if (o.region === scope.region) return "medium";
+      return "low";
+    });
+    add({ type: "T8", subjectKey: b, subjectLabel: bone.display, correct, display: muscleName, cands, multi: true, related: correct, preferCorrect: scopedIds });
+  });
+  const res = { variants, skipped, scoped };
+  genCache.set(key, res);
+  return res;
+}
+
+function promptHTML(v) {
+  const S = "<strong>" + esc(v.subjectLabel) + "</strong>";
+  const partial = v.shownCorrectCount < v.correctCount;
+  switch (v.type) {
+    case "T1": return "What is the origin of " + S + "?";
+    case "T2": return "What is the insertion of " + S + "?";
+    case "T3": return (partial ? "Which of these bones does " : "Which bones does ") + S + " attach to? Select all that apply.";
+    case "T4": return "Where is " + S + " located relative to the <strong>" + esc(v.refLabel) + "</strong>?";
+    case "T5": return (partial ? "Which of these actions does " : "Which actions does ") + S + " perform? Select all that apply.";
+    case "T6": return "Which of these muscles perform " + S + "? Select all that apply.";
+    case "T7": return "Which of these muscles attach at the " + S + "? Select all that apply.";
+    case "T8": return "Which of these muscles attach to the " + S + "? Select all that apply.";
+    case "T9": return (partial ? "Which of these joints does " : "Which joints does ") + S + " cross? Select all that apply.";
+  }
+}
+function buildQuestion(v, r = rand) {
+  let correct = v.correct.slice();
+  if (v.preferCorrect) { const a = shuffle(correct.filter(k => v.preferCorrect.has(k)), r), b = shuffle(correct.filter(k => !v.preferCorrect.has(k)), r); correct = a.concat(b); }
+  else correct = shuffle(correct, r);
+  const shown = correct.slice(0, v.shownCorrectCount);
+  const wrong = [];
+  v.plan.forEach(p => wrong.push(...sample(p.pool, p.take, r)));
+  const opts = shown.map(k => ({ key: k, text: v.display(k), isCorrect: true })).concat(wrong.map(k => ({ key: k, text: v.display(k), isCorrect: false })));
+  return { prompt: promptHTML(v), options: shuffle(opts, r), multi: v.multi, relatedShown: v.type === "T6" || v.type === "T7" || v.type === "T8" ? shown : v.relatedMuscleIds };
+}
+
+/* ================= SCORING ================= */
+function tierFor(total) { return total <= 1 ? 1 : total === 2 ? 2 : total <= 4 ? 3 : total === 5 ? 4 : 5; }
+function scoreVariant(v, ix) {
+  const S = CONFIG.SCORE;
+  const direction = ["T6","T7","T8"].includes(v.type) ? S.reverseDirection : 0;
+  const specificity = ["T1","T2","T5","T6","T7"].includes(v.type) ? S.landmarkOrAction : 0;
+  const similarity = S.similarity[v.actualSimilarity] || 0;
+  const n = v.shownCorrectCount;
+  const correctShown = n <= 1 ? S.correctShown.one : n <= 3 ? S.correctShown.twoToThree : S.correctShown.fourPlus;
+  let adjust = 0;
+  if (["T6","T7","T8"].includes(v.type)) adjust = Math.max(...v.correct.map(id => ix.byId[id] ? ix.byId[id].difficultyAdjust : 0));
+  else if (v.subjectMuscleId) adjust = ix.byId[v.subjectMuscleId].difficultyAdjust;
+  const total = Math.max(0, direction + specificity + similarity + correctShown + adjust);
+  return { direction, specificity, similarity, correctShown, adjust, total, tier: tierFor(total) };
+}
+
+/* ================= STATE / ENGINE ================= */
+function scopeKey(scope) { return scope.region + "|" + (scope.joints && scope.joints.length ? scope.joints.slice().sort().join(",") : "all"); }
+function freshState() { return { version: 1, totalAnswered: 0, scopes: {}, variants: {}, prefs: { scope: { region: "upper", joints: [] } } }; }
+function loadState() {
+  try { const s = JSON.parse(store.get(CONFIG.STATE_KEY) || "null"); if (s && s.version === 1) { s.prefs = s.prefs || { scope: { region: "upper", joints: [] } }; return s; } } catch (e) {}
+  return freshState();
+}
+function saveState(s) { store.set(CONFIG.STATE_KEY, JSON.stringify(s)); }
+function scopeState(state, scope) {
+  const k = scopeKey(scope);
+  if (!state.scopes[k]) state.scopes[k] = { tier: 1, window: [], consecutiveMisses: 0 };
+  return state.scopes[k];
+}
+function pickNext(variants, state, scope, recent, r = rand) {
+  if (!variants.length) return null;
+  const ss = scopeState(state, scope);
+  const T = state.totalAnswered;
+  const vs = id => state.variants[id];
+  const notLast = v => v.baseId !== recent.lastBaseId;
+  const avoidRecent = list => { const f = list.filter(v => !v.relatedMuscleIds.some(id => recent.recentMuscleIds.includes(id))); return f.length ? f : list; };
+  // a. due missed items, any tier
+  const missed = variants.filter(v => { const s = vs(v.variantId); return s && s.box === 0 && s.attempts > 0 && s.dueAt <= T && notLast(v); });
+  if (missed.length) { missed.sort((a, b) => vs(a.variantId).dueAt - vs(b.variantId).dueAt); return missed[0]; }
+  for (let guard = 0; guard < 6; guard++) {
+    let tier = ss.tier;
+    if (tier > 1 && r() < CONFIG.RETENTION_MIX) {
+      const below = variants.filter(v => v.tier === tier - 1 && notLast(v) && (() => { const s = vs(v.variantId); return s && s.box < 3 && s.dueAt <= T; })());
+      if (below.length) return pick(avoidRecent(below), r);
+    }
+    const atTier = variants.filter(v => v.tier === tier);
+    if (atTier.length && atTier.every(v => { const s = vs(v.variantId); return s && s.box >= 3; }) && ss.tier < 5) { ss.tier++; ss.window = []; continue; }
+    let pool = atTier.filter(notLast);
+    if (!pool.length) {
+      // nearest tier with variants, lower first
+      for (let d = 1; d <= 4 && !pool.length; d++) {
+        for (const t of [tier - d, tier + d]) { if (t >= 1 && t <= 5 && !pool.length) pool = variants.filter(v => v.tier === t && notLast(v)); }
+      }
+    }
+    if (!pool.length) pool = variants.slice();
+    const due = pool.filter(v => { const s = vs(v.variantId); return s && s.attempts > 0 && s.box < 3 && s.dueAt <= T; });
+    if (due.length) return pick(avoidRecent(due), r);
+    const unseen = pool.filter(v => !vs(v.variantId));
+    if (unseen.length) return pick(avoidRecent(unseen), r);
+    const notMastered = pool.filter(v => vs(v.variantId).box < 3);
+    const src = notMastered.length ? notMastered : pool;
+    const minBox = Math.min(...src.map(v => vs(v.variantId).box));
+    const low = src.filter(v => vs(v.variantId).box === minBox);
+    // among lowest box, prefer the one due soonest
+    low.sort((a, b) => vs(a.variantId).dueAt - vs(b.variantId).dueAt);
+    return avoidRecent(low.slice(0, Math.max(3, Math.ceil(low.length / 3))))[0] || low[0];
+  }
+  return pick(variants, r);
+}
+function recordAnswer(state, scope, v, isCorrect, r = rand) {
+  state.totalAnswered += 1;
+  const T = state.totalAnswered;
+  const s = state.variants[v.variantId] || { box: 0, attempts: 0, correct: 0, lastSeenAt: 0, dueAt: 0 };
+  s.attempts++; s.lastSeenAt = T;
+  if (isCorrect) {
+    s.correct++; s.box = Math.min(s.box + 1, 3);
+    s.dueAt = s.box === 1 ? T + CONFIG.BOX1_DELAY : s.box === 2 ? T + CONFIG.BOX2_DELAY : Number.MAX_SAFE_INTEGER;
+  } else {
+    s.box = 0;
+    s.dueAt = T + CONFIG.MISSED_DELAY_MIN + Math.floor(r() * (CONFIG.MISSED_DELAY_MAX - CONFIG.MISSED_DELAY_MIN + 1));
+  }
+  state.variants[v.variantId] = s;
+  const ss = scopeState(state, scope);
+  let tierChange = null;
+  if (v.tier === ss.tier) {
+    ss.window.push(!!isCorrect);
+    if (ss.window.length > CONFIG.PROMOTE_WINDOW) ss.window = ss.window.slice(-CONFIG.PROMOTE_WINDOW);
+  }
+  ss.consecutiveMisses = isCorrect ? 0 : ss.consecutiveMisses + 1;
+  if (ss.consecutiveMisses >= CONFIG.DEMOTE_CONSECUTIVE_MISSES) {
+    if (ss.tier > 1) { ss.tier--; tierChange = "down"; }
+    ss.window = []; ss.consecutiveMisses = 0;
+  } else if (ss.window.length >= CONFIG.PROMOTE_WINDOW && ss.window.filter(Boolean).length >= CONFIG.PROMOTE_MIN_CORRECT) {
+    if (ss.tier < 5) { ss.tier++; tierChange = "up"; }
+    ss.window = [];
+  }
+  return { state, tierChange };
+}
+function computeMastery(ix, state) {
+  const mastered = {};
+  const all = [...generateVariants(ix, { region: "upper", joints: [] }).variants, ...generateVariants(ix, { region: "lower", joints: [] }).variants];
+  const bases = {};
+  all.forEach(v => { if (v.subjectMuscleId && ["T1","T2","T3","T4","T5","T9"].includes(v.type)) { (bases[v.subjectMuscleId] = bases[v.subjectMuscleId] || {}); (bases[v.subjectMuscleId][v.baseId] = bases[v.subjectMuscleId][v.baseId] || []).push(v.variantId); } });
+  ix.muscles.forEach(m => {
+    const b = bases[m.id] || {};
+    const keys = Object.keys(b);
+    mastered[m.id] = keys.length > 0 && keys.every(k => b[k].some(id => state.variants[id] && state.variants[id].box >= 3));
+  });
+  const joints = {}, regions = {};
+  ix.cross.forEach((j, k) => { const ms = [...j.muscles]; joints[k] = Math.round(100 * ms.filter(id => mastered[id]).length / ms.length); });
+  ["upper", "lower"].forEach(r => { const ms = ix.muscles.filter(m => m.region === r); regions[r] = { pct: ms.length ? Math.round(100 * ms.filter(m => mastered[m.id]).length / ms.length) : 0, done: ms.filter(m => mastered[m.id]).length, total: ms.length }; });
+  return { muscles: mastered, joints, regions };
+}
+
+/* ================= APP ================= */
+const app = { status: "loading", data: null, ix: null, source: null, state: loadState(), session: null, browse: { idx: 0, flipped: false, shuffle: false, order: null, q: "", forceId: null }, review: { scope: { region: "upper", joints: [] }, tier: "", type: "", q: "", preview: null }, confirmReset: false };
+const $app = document.getElementById("app");
+const live = document.getElementById("live");
+function announce(msg) { live.textContent = ""; setTimeout(() => { live.textContent = msg; }, 30); }
+function getScope() { const s = app.state.prefs.scope || { region: "upper", joints: [] }; return { region: s.region, joints: (s.joints || []).filter(j => app.ix && app.ix.cross.has(j)) }; }
+function setScope(sc) { app.state.prefs.scope = sc; saveState(app.state); }
+function scopeLabel(sc) { return (sc.region === "upper" ? "Upper" : "Lower") + (sc.joints.length ? " · " + sc.joints.map(j => cap(app.ix.cross.get(j).display)).join(", ") : " · All joints"); }
+function route() { let h = location.hash.replace(/^#\/?/, ""); h = h.split("?")[0]; const path = (!h || h === "home") ? "/" : "/" + h; return { path, params: new URLSearchParams() }; }
+function go(path) { const target = path === "/" ? "home" : path.replace(/^\//, ""); if (location.hash.replace(/^#\/?/, "") === target) render(); else location.hash = target; }
+function setTitle(t) { document.title = t ? t + " · OIA Trainer" : "OIA Trainer"; }
+function topbar(title, opts = {}) {
+  return '<header class="topbar' + (opts.wide ? " wide" : "") + '"><div class="inner">' +
+    (opts.back !== false ? '<button class="iconbtn" data-act="home" aria-label="Back to home">←</button>' : "") +
+    '<div class="title">' + esc(title) + "</div>" + (opts.right || "") + "</div></header>";
+}
+function locPhrase(m) { return cap(m.location) + " to the " + m.locationRef; }
+function muscleCard(m, withName = true) {
+  const groups = new Map();
+  m.actions.forEach(a => { const k = norm(a.joint); if (!groups.has(k)) groups.set(k, { joint: a.joint, list: [] }); groups.get(k).list.push(a.action); });
+  const sites = list => list.map(s => "<div>" + (s.label ? "<em>" + esc(s.label) + ":</em> " : "") + esc(s.name) + "</div>").join("");
+  let h = '<div class="card">' + (withName ? "<h3>" + esc(m.name) + "</h3>" : "") + '<div class="meta">' + (m.region === "upper" ? "Upper extremity" : "Lower extremity") + "</div><dl>";
+  h += "<dt>Location</dt><dd>" + esc(locPhrase(m)) + "</dd>";
+  h += "<dt>Joints crossed</dt><dd>" + (m.jointsCrossed.length ? esc(m.jointsCrossed.map(cap).join(", ")) : "None listed") + "</dd>";
+  if (m.attachmentsTested) {
+    h += "<dt>Origin</dt><dd>" + sites(m.originSites) + "</dd><dt>Insertion</dt><dd>" + sites(m.insertionSites) + "</dd>";
+    h += "<dt>Bones</dt><dd>" + esc([...new Set([...m.originBones, ...m.insertionBones])].join(", ")) + "</dd>";
+  } else h += "<dt>Origin and insertion</dt><dd>Origin and insertion not required.</dd>";
+  h += "<dt>Actions</dt><dd>" + [...groups.values()].map(g => "<div>" + esc(cap(g.joint)) + ": " + esc(g.list.join(", ")) + "</div>").join("") + "</dd></dl>";
+  if (m.cardNote) h += '<div class="note"><strong>Note:</strong> ' + esc(m.cardNote) + "</div>";
+  return h + "</div>";
+}
+
+/* ---------- HOME ---------- */
+function renderHome() {
+  setTitle("");
+  const sc = getScope();
+  const joints = app.ix.regionJoints[sc.region];
+  const level = app.state.scopes[scopeKey(sc)] ? app.state.scopes[scopeKey(sc)].tier : 1;
+  let h = '<main class="wrap"><h1>OIA Trainer</h1><p class="sub">Muscle origins, insertions, and actions for MOV 300.</p>';
+  if (CONFIG.DATA_URL && app.source !== "sheet") h += '<div class="notice">Showing saved content.</div>';
+  h += '<h2 id="regionlbl" style="margin-top:8px">What do you want to study?</h2><div class="seg" role="group" aria-labelledby="regionlbl">' +
+    '<button data-act="region" data-v="upper" aria-pressed="' + (sc.region === "upper") + '">Upper extremity</button>' +
+    '<button data-act="region" data-v="lower" aria-pressed="' + (sc.region === "lower") + '">Lower extremity</button></div>';
+  h += '<div class="chips" role="group" aria-label="Joints"><button class="chip" data-act="joint" data-v="" aria-pressed="' + (!sc.joints.length) + '">All joints</button>' +
+    joints.map(j => '<button class="chip" data-act="joint" data-v="' + esc(j) + '" aria-pressed="' + sc.joints.includes(j) + '">' + esc(app.ix.cross.get(j).display) + "</button>").join("") + "</div>";
+  if (sc.region === "lower") h += '<p class="meta" style="margin:4px 0 0">Lower extremity includes trunk and spine muscles.</p>';
+  h += '<p class="levelline">Level ' + level + " of 5 for this selection</p>";
+  h += '<button class="btn primary" data-act="start">Start quiz</button><a class="btn" href="#browse">Browse cards</a><a class="btn" href="#progress">My progress</a>';
+  h += '<div class="footer"><span>Content updated ' + esc(app.data.dataVersion || "—") + '</span><a href="#about">About</a></div></main>';
+  $app.innerHTML = h;
+}
+
+/* ---------- QUIZ ---------- */
+const ENCOURAGE = ["Nice.", "Got it.", "Solid.", "That one trips people up."];
+function newSession(sc) {
+  const ss = scopeState(app.state, sc);
+  return { scope: sc, answered: 0, correct: 0, startTier: ss.tier, maxTier: ss.tier, missed: [], lastBaseId: null, recentMuscleIds: [], current: null };
+}
+function nextQuestion() {
+  const s = app.session; const gen = generateVariants(app.ix, s.scope);
+  const v = pickNext(gen.variants, app.state, s.scope, { lastBaseId: s.lastBaseId, recentMuscleIds: s.recentMuscleIds });
+  if (!v) { s.current = null; return; }
+  s.current = { v, q: buildQuestion(v), selected: new Set(), answered: false, ok: null, n: s.answered + 1 };
+}
+function renderQuiz() {
+  setTitle("Quiz");
+  const sc = getScope();
+  if (!app.session || scopeKey(app.session.scope) !== scopeKey(sc)) { app.session = newSession(sc); nextQuestion(); }
+  const s = app.session;
+  const ss = scopeState(app.state, sc);
+  const right = '<span class="badge" aria-label="Level ' + ss.tier + ' of 5">Level ' + ss.tier + '/5</span><button class="textbtn" data-act="end">End</button>';
+  let h = topbar(scopeLabel(sc), { right });
+  h += '<main class="wrap">';
+  if (!s.current) {
+    h += '<p class="prompt">Not enough muscles in this selection yet. Try adding a joint.</p><a class="btn primary" href="#home">Back to home</a></main>';
+    $app.innerHTML = h; return;
+  }
+  const c = s.current;
+  h += '<p class="meta" style="margin:14px 0 0">Question ' + c.n + "</p>";
+  h += '<p class="prompt" id="qprompt">' + c.q.prompt + "</p>";
+  if (c.q.multi && !c.answered) h += '<p class="hint">Check every answer that applies, then tap Submit.</p>';
+  if (c.answered) {
+    h += '<div class="banner ' + (c.ok ? "ok" : "no") + '"><span aria-hidden="true">' + (c.ok ? "✔" : "✖") + "</span><span>" + (c.ok ? "Correct" : "Not quite") + (c.ok && c.enc ? ' <span class="encourage">' + esc(c.enc) + "</span>" : "") + "</span></div>";
+  }
+  h += '<div class="opts" role="group" aria-labelledby="qprompt">';
+  c.q.options.forEach((o, i) => {
+    const chosen = c.selected.has(i);
+    let cls = "opt", mark = "";
+    if (c.answered) {
+      if (chosen && o.isCorrect) { cls += " is-correct"; mark = '<span class="mark">✔ Correct</span>'; }
+      else if (chosen && !o.isCorrect) { cls += " is-wrong"; mark = '<span class="mark">✖ Incorrect</span>'; }
+      else if (!chosen && o.isCorrect) { cls += " is-missed"; mark = '<span class="mark">Missed</span>'; }
+      else cls += " is-dim";
+    } else if (chosen) cls += " sel";
+    if (c.q.multi) {
+      h += '<label class="' + cls + '"><input type="checkbox" data-act="toggle" data-i="' + i + '"' + (chosen ? " checked" : "") + (c.answered ? " disabled" : "") + '><span class="txt">' + esc(o.text) + "</span>" + mark + "</label>";
+    } else {
+      h += '<button class="' + cls + '" data-act="choose" data-i="' + i + '"' + (c.answered ? " disabled" : "") + '><span class="txt">' + esc(o.text) + "</span>" + mark + "</button>";
+    }
+  });
+  h += "</div>";
+  if (c.answered) {
+    const ids = c.q.relatedShown.filter(id => app.ix.byId[id]);
+    if (["T6","T7","T8"].includes(c.v.type)) {
+      h += "<h3>Correct muscles shown</h3>" + ids.map(id => '<details class="mcard"><summary>' + esc(app.ix.byId[id].name) + "</summary>" + muscleCard(app.ix.byId[id], false) + "</details>").join("");
+    } else if (ids[0]) h += muscleCard(app.ix.byId[ids[0]]);
+    h += '<div class="sticky"><button class="btn primary" data-act="next">Next</button></div>';
+  } else if (c.q.multi) {
+    h += '<div class="sticky"><button class="btn primary" data-act="submit"' + (c.selected.size ? "" : " disabled") + ">Submit</button></div>";
+  }
+  h += "</main>";
+  $app.innerHTML = h;
+}
+function grade() {
+  const s = app.session, c = s.current;
+  const ok = c.q.options.every((o, i) => o.isCorrect === c.selected.has(i));
+  c.answered = true; c.ok = ok;
+  if (ok) c.enc = Math.random() < 0.6 ? pick(ENCOURAGE) : "";
+  const res = recordAnswer(app.state, s.scope, c.v, ok);
+  saveState(app.state);
+  s.answered++; if (ok) s.correct++;
+  if (!ok) c.q.relatedShown.forEach(id => { if (!s.missed.includes(id)) s.missed.push(id); });
+  s.lastBaseId = c.v.baseId;
+  s.recentMuscleIds = s.recentMuscleIds.concat(c.v.relatedMuscleIds).slice(-CONFIG.SAME_MUSCLE_GAP * 2);
+  const tier = scopeState(app.state, s.scope).tier; s.maxTier = Math.max(s.maxTier, tier);
+  renderQuiz();
+  announce((ok ? "Correct." : "Not quite.") + (res.tierChange === "up" ? " Level up! Now level " + tier + "." : res.tierChange === "down" ? " Back to level " + tier + " for a bit." : ""));
+  if (res.tierChange) toast(res.tierChange === "up" ? "Level up! Now Level " + tier : "Back to Level " + tier + " for a bit");
+  const banner = document.querySelector(".banner"); if (banner) banner.scrollIntoView({ block: "nearest" });
+}
+function toast(msg) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; t.setAttribute("aria-hidden", "true");
+  document.body.appendChild(t);
+  setTimeout(() => t.classList.add("hide"), 2600); setTimeout(() => t.remove(), 3100);
+}
+
+/* ---------- SUMMARY ---------- */
+function renderSummary() {
+  setTitle("Summary");
+  const s = app.session;
+  if (!s || !s.answered) { go("/"); return; }
+  const tier = scopeState(app.state, s.scope).tier;
+  let h = topbar("Session summary") + '<main class="wrap"><h1>Session complete</h1><p class="sub">' + esc(scopeLabel(s.scope)) + "</p>";
+  h += '<div class="stat"><span>Questions answered</span><b>' + s.answered + '</b></div><div class="stat"><span>Percent correct</span><b>' + Math.round(100 * s.correct / s.answered) + '%</b></div><div class="stat"><span>Starting level</span><b>' + s.startTier + '</b></div><div class="stat"><span>Level now</span><b>' + tier + "</b></div>";
+  if (s.missed.length) h += '<h2>Review these</h2><div class="list">' + s.missed.map(id => '<a href="#browse" data-act="gobrowse" data-id="' + esc(id) + '">' + esc(app.ix.byId[id].name) + "</a>").join("") + "</div>";
+  h += '<button class="btn primary" data-act="keepgoing" style="margin-top:20px">Keep going</button><a class="btn" href="#home" data-act="clearsession">Home</a></main>';
+  $app.innerHTML = h;
+}
+
+/* ---------- BROWSE ---------- */
+function browseList() {
+  const sc = getScope();
+  let list = app.ix.muscles.filter(m => inScope(m, sc)).sort((a, b) => a.name.localeCompare(b.name));
+  if (app.browse.shuffle) {
+    const key = scopeKey(sc);
+    if (!app.browse.order || app.browse.orderKey !== key || app.browse.order.length !== list.length) { app.browse.order = shuffle(list.map(m => m.id)); app.browse.orderKey = key; }
+    list = app.browse.order.map(id => app.ix.byId[id]);
+  }
+  if (app.browse.forceId && !list.some(m => m.id === app.browse.forceId) && app.ix.byId[app.browse.forceId]) list = [app.ix.byId[app.browse.forceId]].concat(list);
+  return list;
+}
+function renderBrowse(params) {
+  setTitle("Browse");
+  const want = app.browse.pendingId; app.browse.pendingId = null;
+  if (want) { app.browse.forceId = want; app.browse.flipped = false; }
+  const list = browseList();
+  if (want) { const i = list.findIndex(m => m.id === want); if (i >= 0) app.browse.idx = i; }
+  if (app.browse.idx >= list.length) app.browse.idx = 0;
+  const sc = getScope();
+  let h = topbar("Browse cards") + '<main class="wrap"><p class="meta" style="margin-top:14px">' + esc(scopeLabel(sc)) + ' · <a href="#home">Change</a></p>';
+  h += '<label class="sr" for="bsearch">Search muscles</label><input id="bsearch" class="search" type="search" placeholder="Search by muscle name" value="' + esc(app.browse.q) + '" autocomplete="off">';
+  h += '<div class="results" id="bresults"></div>';
+  if (!list.length) { $app.innerHTML = h + '<p>No muscles in this selection.</p></main>'; return; }
+  const m = list[app.browse.idx];
+  const outside = !inScope(m, sc);
+  h += '<label class="toggle"><input type="checkbox" data-act="bshuffle"' + (app.browse.shuffle ? " checked" : "") + "> Shuffle</label>";
+  if (outside) h += '<div class="notice">Outside your current selection</div>';
+  if (!app.browse.flipped) h += '<button class="flip front" data-act="flip" aria-label="' + esc(m.name) + '. Tap to flip."><div class="big">' + esc(m.name) + '</div><div class="meta" style="margin-top:8px">' + (m.region === "upper" ? "Upper extremity" : "Lower extremity") + " · " + esc(locPhrase(m)) + '</div><div class="meta" style="margin-top:18px">Tap to flip</div></button>';
+  else h += '<button class="flip" data-act="flip" aria-label="Back of card. Tap to flip."><div class="big" style="font-size:22px">' + esc(m.name) + "</div>" + muscleCard(m, false) + "</button>";
+  h += '<div class="navrow"><button class="btn" data-act="bprev" aria-label="Previous card">← Prev</button><span class="count">' + (app.browse.idx + 1) + " of " + list.length + '</span><button class="btn" data-act="bnext" aria-label="Next card">Next →</button></div></main>';
+  $app.innerHTML = h;
+  renderSearchResults();
+}
+function renderSearchResults() {
+  const el = document.getElementById("bresults"); if (!el) return;
+  const q = norm(app.browse.q);
+  if (!q) { el.innerHTML = ""; return; }
+  const hits = app.ix.muscles.filter(m => norm(m.name).includes(q)).slice(0, 8);
+  el.innerHTML = hits.length ? hits.map(m => '<button data-act="bjump" data-id="' + esc(m.id) + '">' + esc(m.name) + "</button>").join("") : '<p class="meta">No matches</p>';
+}
+function browseMove(d) { const n = browseList().length; if (!n) return; app.browse.idx = (app.browse.idx + d + n) % n; app.browse.flipped = false; renderBrowse(route().params); }
+
+/* ---------- PROGRESS ---------- */
+function renderProgress() {
+  setTitle("Progress");
+  const ms = computeMastery(app.ix, app.state);
+  let h = topbar("My progress") + '<main class="wrap">';
+  if (!store.available()) h += '<div class="notice">Your browser is blocking storage, so progress won\'t be saved after you close this page.</div>';
+  h += '<p class="meta" style="margin-top:14px">A muscle counts as mastered once you\'ve answered its origin, insertion, bones, location, actions, and joints-crossed questions correctly several times.</p>';
+  ["upper", "lower"].forEach(r => {
+    const R = ms.regions[r];
+    h += '<section class="region"><div class="prow" style="border:0;cursor:default"><div class="top"><span>' + (r === "upper" ? "Upper extremity" : "Lower extremity") + "</span><span>" + R.pct + '%</span></div><div class="bar" role="img" aria-label="' + R.pct + ' percent mastered"><span style="width:' + R.pct + '%"></span></div><div class="meta" style="margin-top:4px">' + R.done + " of " + R.total + " muscles</div></div>";
+    const js = app.ix.regionJoints[r].slice().sort((a, b) => ms.joints[a] - ms.joints[b]);
+    js.forEach(j => { h += '<button class="prow" data-act="pjoint" data-r="' + r + '" data-j="' + esc(j) + '"><div class="top"><span>' + esc(app.ix.cross.get(j).display) + "</span><span>" + ms.joints[j] + '%</span></div><div class="bar" aria-hidden="true"><span style="width:' + ms.joints[j] + '%"></span></div><span class="sr">' + ms.joints[j] + " percent mastered. Tap to quiz this joint.</span></button>"; });
+    h += "</section>";
+  });
+  const used = Object.keys(app.state.scopes);
+  if (used.length) {
+    h += "<h2>Your levels</h2>" + used.map(k => { const [reg, js] = k.split("|"); const sc = { region: reg, joints: js === "all" ? [] : js.split(",") }; const ok = sc.joints.every(j => app.ix.cross.has(j)); return ok ? '<div class="stat"><span>' + esc(scopeLabel(sc)) + "</span><b>Level " + app.state.scopes[k].tier + "</b></div>" : ""; }).join("");
+  }
+  h += '<h2>Start over</h2>';
+  if (!app.confirmReset) h += '<button class="btn" data-act="reset">Reset my progress</button>';
+  else h += '<div class="confirm" role="alertdialog" aria-labelledby="cfm"><p id="cfm" style="margin:0"><strong>This clears all levels and mastery on this device. Reset?</strong></p><div class="row"><button class="btn" data-act="resetno">Cancel</button><button class="btn primary" data-act="resetyes">Reset</button></div></div>';
+  h += "</main>";
+  $app.innerHTML = h;
+  if (app.confirmReset) { const b = document.querySelector('[data-act="resetno"]'); if (b) b.focus(); }
+}
+
+/* ---------- ABOUT ---------- */
+function renderAbout() {
+  setTitle("About");
+  $app.innerHTML = topbar("About") + '<main class="wrap"><h1>About</h1>' +
+    "<p>OIA Trainer is an independent study aid created by Dr. Krisanne Chapin for MOV 300. It is not an official Grand Valley State University application.</p>" +
+    "<p>All content comes from the MOV 300 muscle table. If anything here differs from your course materials, follow your course materials and let your instructor know.</p>" +
+    "<p>This app does not collect any information about you. Your progress is saved only in this browser on this device. Clearing your browser data or switching devices starts you over.</p>" +
+    "<p><strong>How it works:</strong> questions start easy and get harder as you answer correctly. Missed questions come back a few questions later.</p>" +
+    '<p class="meta">Content updated ' + esc(app.data.dataVersion || "—") + "</p></main>";
+}
+
+/* ---------- REVIEW (instructor) ---------- */
+function reviewRows() {
+  const rv = app.review; const gen = generateVariants(app.ix, rv.scope);
+  return { gen, rows: gen.variants.filter(v => (!rv.tier || String(v.tier) === rv.tier) && (!rv.type || v.type === rv.type) && (!rv.q || norm(v.subjectLabel).includes(norm(rv.q)) || v.relatedMuscleIds.some(id => norm(app.ix.byId[id].name).includes(norm(rv.q))))) };
+}
+function exampleDistractors(v) { const out = []; v.plan.forEach(p => out.push(...p.pool.slice(0, 3))); return out.slice(0, 3).map(k => v.display(k)); }
+function renderReview() {
+  setTitle("Instructor review");
+  let m = document.querySelector('meta[name="robots"]'); if (!m) { m = document.createElement("meta"); m.name = "robots"; document.head.appendChild(m); } m.content = "noindex";
+  const rv = app.review; const { gen, rows } = reviewRows();
+  const d = app.data;
+  const byReg = r => app.ix.muscles.filter(x => x.region === r).length;
+  let h = topbar("Instructor review", { wide: true }) + '<main class="wrap wide">';
+  h += '<p style="margin-top:14px"><strong>Data source:</strong> ' + esc(app.source) + " · <strong>Version:</strong> " + esc(d.dataVersion || "—") + " · <strong>Muscles:</strong> " + byReg("upper") + " upper, " + byReg("lower") + " lower · <strong>Warnings:</strong> " + d.warnings.length + "</p>";
+  h += '<h2>Scope</h2><div class="rv-controls"><label>Region <select data-rv="region"><option value="upper"' + (rv.scope.region === "upper" ? " selected" : "") + '>Upper</option><option value="lower"' + (rv.scope.region === "lower" ? " selected" : "") + ">Lower</option></select></label>";
+  h += app.ix.regionJoints[rv.scope.region].map(j => '<label class="small"><input type="checkbox" data-rv="joint" value="' + esc(j) + '"' + (rv.scope.joints.includes(j) ? " checked" : "") + "> " + esc(app.ix.cross.get(j).display) + "</label>").join(" ") + "</div>";
+  // summary
+  const all = gen.variants, n = all.length || 1;
+  h += "<h2>Summary (" + all.length + " variants)</h2><table><thead><tr><th>Tier</th>" + [1,2,3,4,5].map(t => "<th>" + t + "</th>").join("") + "</tr></thead><tbody><tr><td>Count</td>" + [1,2,3,4,5].map(t => { const c = all.filter(v => v.tier === t).length; return "<td" + (c / n < 0.1 ? ' class="low" title="Under 10% of variants"' : "") + ">" + c + " (" + Math.round(100 * c / n) + "%)</td>"; }).join("") + "</tr></tbody></table>";
+  h += '<table style="margin-top:8px"><thead><tr><th>Type</th>' + TYPES.map(t => "<th>" + t + "</th>").join("") + "</tr></thead><tbody><tr><td>Count</td>" + TYPES.map(t => "<td>" + all.filter(v => v.type === t).length + "</td>").join("") + "</tr></tbody></table>";
+  h += '<p class="small meta">' + TYPES.map(t => t + " = " + TYPE_NAMES[t]).join(" · ") + "</p>";
+  // items
+  h += '<h2>Items</h2><div class="rv-controls"><label>Tier <select data-rv="tier"><option value="">All</option>' + [1,2,3,4,5].map(t => '<option value="' + t + '"' + (rv.tier === String(t) ? " selected" : "") + ">" + t + "</option>").join("") + '</select></label><label>Type <select data-rv="type"><option value="">All</option>' + TYPES.map(t => '<option value="' + t + '"' + (rv.type === t ? " selected" : "") + ">" + t + "</option>").join("") + '</select></label><label>Search <input type="text" data-rv="q" value="' + esc(rv.q) + '" placeholder="Muscle or subject"></label><button class="btn" style="width:auto;min-height:40px;margin:0" data-act="csv">Download CSV</button><button class="btn" style="width:auto;min-height:40px;margin:0" data-act="copycsv">Copy CSV</button><span class="small meta">' + rows.length + " shown</span></div>";
+  if (rv.preview) { const v = all.find(x => x.variantId === rv.preview); if (v) { const q = buildQuestion(v); h += '<div class="preview"><strong>Preview: ' + esc(v.variantId) + '</strong> <button class="btn" style="width:auto;min-height:36px;display:inline-flex;margin:0 0 0 8px" data-act="closeprev">Close</button><p class="prompt" style="font-size:18px">' + q.prompt + "</p><ul>" + q.options.map(o => "<li>" + (o.isCorrect ? "✔ " : "") + esc(o.text) + "</li>").join("") + "</ul></div>"; } }
+  const sorted = rows.slice().sort((a, b) => a.tier - b.tier || a.type.localeCompare(b.type));
+  h += '<div class="scroll"><table><thead><tr><th>Variant</th><th>Type</th><th>Prompt</th><th>Correct</th><th>Example distractors</th><th>Dir</th><th>Spec</th><th>Sim</th><th>Shown</th><th>Adj</th><th>Total</th><th>Tier</th><th></th></tr></thead><tbody>';
+  h += sorted.slice(0, 1500).map(v => "<tr><td class=small>" + esc(v.variantId) + "</td><td>" + v.type + "</td><td>" + promptHTML(v) + "</td><td>" + esc(v.correct.map(k => v.display(k)).join(" | ")) + "</td><td>" + esc(exampleDistractors(v).join(" | ")) + "</td><td>" + v.score.direction + "</td><td>" + v.score.specificity + "</td><td>" + v.score.similarity + " (" + v.actualSimilarity + ")</td><td>" + v.score.correctShown + "</td><td>" + v.score.adjust + "</td><td><b>" + v.score.total + "</b></td><td><b>" + v.tier + '</b></td><td><button data-act="prev" data-id="' + esc(v.variantId) + '">Preview</button></td></tr>').join("");
+  h += "</tbody></table></div>";
+  if (gen.skipped.length) h += "<h2>Skipped items (" + gen.skipped.length + ")</h2><ul class=small>" + gen.skipped.map(s => "<li>" + esc(s.baseId) + ": " + esc(s.reason) + "</li>").join("") + "</ul>";
+  // warnings
+  h += "<h2>Data warnings (" + d.warnings.length + ")</h2>" + (d.warnings.length ? "<table><thead><tr><th>Row</th><th>muscle_id</th><th>Message</th></tr></thead><tbody>" + d.warnings.map(w => "<tr><td>" + w.row + "</td><td>" + esc(w.muscleId || "") + "</td><td>" + esc(w.message) + "</td></tr>").join("") + "</tbody></table>" : "<p>None.</p>");
+  // distinct values
+  const count = (map, f) => [...map.values()].map(x => [x[f] || x.display, x.muscles.size]).sort((a, b) => String(a[0]).toLowerCase().localeCompare(String(b[0]).toLowerCase()));
+  const block = (title, arr) => "<h3>" + title + " (" + arr.length + ")</h3><p class=small>" + arr.map(([k, c]) => esc(k) + " <span class=meta>(" + c + ")</span>").join(" · ") + "</p>";
+  const locs = {}; const refs = {}; app.ix.muscles.forEach(x => { locs[x.location] = (locs[x.location] || 0) + 1; refs[x.locationRef] = (refs[x.locationRef] || 0) + 1; });
+  h += "<h2>Distinct values</h2>" + block("Joints crossed", count(app.ix.cross, "display")) + block("Location terms", Object.entries(locs).sort()) + block("Location references", Object.entries(refs).sort()) +
+    block("Joint: action pairs", [...app.ix.pairs.values()].map(p => [p.jointDisplay + ": " + p.action, p.muscles.size]).sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()))) +
+    block("Attachment sites", count(app.ix.sites, "display")) + block("Bones", count(app.ix.bones, "display"));
+  h += "<h2>All muscles (" + app.ix.muscles.length + ')</h2><div class="scroll"><table><thead><tr><th>ID</th><th>Muscle</th><th>Region</th><th>Location</th><th>Joints crossed</th><th>Origin</th><th>Origin bones</th><th>Insertion</th><th>Insertion bones</th><th>Actions</th><th>Note</th><th>Adj</th></tr></thead><tbody>' +
+    app.ix.muscles.map(x => "<tr><td class=small>" + esc(x.id) + "</td><td>" + esc(x.name) + "</td><td>" + x.region + "</td><td>" + esc(locPhrase(x)) + "</td><td>" + esc(x.jointsCrossed.join("; ")) + "</td><td>" + esc(x.originRaw) + "</td><td>" + esc(x.originBones.join("; ")) + "</td><td>" + esc(x.insertionRaw) + "</td><td>" + esc(x.insertionBones.join("; ")) + "</td><td>" + esc(x.actions.map(a => a.joint + ": " + a.action).join("; ")) + "</td><td>" + esc(x.cardNote || "") + "</td><td>" + x.difficultyAdjust + "</td></tr>").join("") + "</tbody></table></div></main>";
+  $app.innerHTML = h;
+}
+function reviewCsvText() {
+  const { rows } = reviewRows();
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  const strip = s => String(s).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const lines = [["variantId","type","prompt","correct","example_distractors","direction","specificity","similarity","similarity_level","correct_shown","adjust","total","tier"].join(",")];
+  rows.forEach(v => lines.push([v.variantId, v.type, strip(promptHTML(v)), v.correct.map(k => v.display(k)).join(" | "), exampleDistractors(v).join(" | "), v.score.direction, v.score.specificity, v.score.similarity, v.actualSimilarity, v.score.correctShown, v.score.adjust, v.score.total, v.tier].map(q).join(",")));
+  return lines.join("\r\n");
+}
+function downloadReviewCsv() {
+  const blob = new Blob([reviewCsvText()], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "oia-review-" + app.review.scope.region + ".csv"; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* ---------- ROUTER / EVENTS ---------- */
+function render() {
+  try {
+    if (app.status === "loading") { $app.innerHTML = '<main class="wrap"><h1>OIA Trainer</h1><p>Loading muscles…</p></main>'; return; }
+    if (app.status === "error") { $app.innerHTML = '<main class="wrap"><h1>OIA Trainer</h1><p>The muscle data could not be loaded.</p><button class="btn primary" data-act="retry">Retry</button></main>'; return; }
+    const { path, params } = route();
+    if (path !== "/progress") app.confirmReset = false;
+    if (path === "/quiz") renderQuiz();
+    else if (path === "/summary") renderSummary();
+    else if (path === "/browse") renderBrowse(params);
+    else if (path === "/progress") renderProgress();
+    else if (path === "/about") renderAbout();
+    else if (path === "/review") renderReview();
+    else renderHome();
+    if (path !== "/review") { const m = document.querySelector('meta[name="robots"]'); if (m) m.remove(); }
+  } catch (e) {
+    console.error(e);
+    $app.innerHTML = '<main class="wrap"><h1>Something went wrong</h1><p>Sorry about that. Reloading usually fixes it.</p><button class="btn primary" data-act="reload">Reload</button></main>';
+  }
+}
+let lastPath = null;
+window.addEventListener("hashchange", () => { const p = route().path; render(); if (p !== lastPath) window.scrollTo(0, 0); lastPath = p; });
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  const act = el.dataset.act;
+  const sc = getScope();
+  switch (act) {
+    case "home": go("/"); break;
+    case "reload": location.reload(); break;
+    case "retry": init(); break;
+    case "region": if (sc.region !== el.dataset.v) { setScope({ region: el.dataset.v, joints: [] }); app.browse.idx = 0; } renderHome(); break;
+    case "joint": {
+      const v = el.dataset.v; let joints = sc.joints.slice();
+      if (!v) joints = []; else joints = joints.includes(v) ? joints.filter(j => j !== v) : joints.concat(v);
+      setScope({ region: sc.region, joints }); app.browse.idx = 0; renderHome(); break;
+    }
+    case "start": app.session = newSession(sc); nextQuestion(); go("/quiz"); break;
+    case "choose": { const c = app.session && app.session.current; if (!c || c.answered) break; c.selected = new Set([+el.dataset.i]); grade(); break; }
+    case "submit": { const c = app.session && app.session.current; if (c && !c.answered && c.selected.size) grade(); break; }
+    case "next": nextQuestion(); renderQuiz(); window.scrollTo(0, 0); { const p = document.getElementById("qprompt"); if (p) { p.setAttribute("tabindex", "-1"); p.focus({ preventScroll: true }); } } break;
+    case "end": if (app.session && app.session.answered) go("/summary"); else { app.session = null; go("/"); } break;
+    case "keepgoing": app.session = newSession(app.session.scope); nextQuestion(); go("/quiz"); break;
+    case "clearsession": app.session = null; break;
+    case "flip": app.browse.flipped = !app.browse.flipped; renderBrowse(route().params); { const f = document.querySelector(".flip"); if (f) f.focus(); } break;
+    case "bprev": browseMove(-1); break;
+    case "bnext": browseMove(1); break;
+    case "bjump": { app.browse.forceId = el.dataset.id; app.browse.q = ""; const list = browseList(); app.browse.idx = Math.max(0, list.findIndex(m => m.id === el.dataset.id)); app.browse.flipped = false; renderBrowse(route().params); break; }
+    case "pjoint": setScope({ region: el.dataset.r, joints: [el.dataset.j] }); app.session = newSession(getScope()); nextQuestion(); go("/quiz"); break;
+    case "reset": app.confirmReset = true; renderProgress(); break;
+    case "resetno": app.confirmReset = false; renderProgress(); break;
+    case "resetyes": { const prefs = app.state.prefs; app.state = freshState(); app.state.prefs = prefs; saveState(app.state); app.session = null; app.confirmReset = false; renderProgress(); announce("Progress reset."); break; }
+    case "csv": downloadReviewCsv(); break;
+    case "copycsv": { const txt = reviewCsvText(); try { navigator.clipboard.writeText(txt).then(() => { el.textContent = "Copied"; }, () => { el.textContent = "Copy failed"; }); } catch (err) { el.textContent = "Copy failed"; } break; }
+    case "gobrowse": e.preventDefault(); app.browse.pendingId = el.dataset.id; app.browse.q = ""; go("/browse"); break;
+    case "prev": app.review.preview = el.dataset.id; renderReview(); window.scrollTo(0, document.querySelector(".preview").offsetTop - 80); break;
+    case "closeprev": app.review.preview = null; renderReview(); break;
+  }
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.act === "toggle") {
+    const c = app.session && app.session.current; if (!c || c.answered) return;
+    const i = +el.dataset.i; if (el.checked) c.selected.add(i); else c.selected.delete(i);
+    el.closest(".opt").classList.toggle("sel", el.checked);
+    const b = document.querySelector('[data-act="submit"]'); if (b) b.disabled = !c.selected.size;
+  } else if (el.dataset.act === "bshuffle") { app.browse.shuffle = el.checked; app.browse.idx = 0; app.browse.order = null; app.browse.flipped = false; renderBrowse(route().params); }
+  else if (el.dataset.rv) {
+    const rv = app.review;
+    if (el.dataset.rv === "region") rv.scope = { region: el.value, joints: [] };
+    else if (el.dataset.rv === "joint") rv.scope = { region: rv.scope.region, joints: el.checked ? rv.scope.joints.concat(el.value) : rv.scope.joints.filter(j => j !== el.value) };
+    else if (el.dataset.rv === "tier") rv.tier = el.value;
+    else if (el.dataset.rv === "type") rv.type = el.value;
+    rv.preview = null; renderReview();
+  }
+});
+document.addEventListener("input", e => {
+  if (e.target.id === "bsearch") { app.browse.q = e.target.value; renderSearchResults(); }
+  if (e.target.dataset.rv === "q") { app.review.q = e.target.value; clearTimeout(app._rvT); app._rvT = setTimeout(() => { const pos = e.target.selectionStart; renderReview(); const i = document.querySelector('[data-rv="q"]'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 350); }
+});
+document.addEventListener("keydown", e => {
+  if (route().path !== "/browse" || e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowLeft") browseMove(-1);
+  if (e.key === "ArrowRight") browseMove(1);
+});
+let tx = null, ty = null;
+document.addEventListener("touchstart", e => { if (route().path === "/browse" && e.target.closest(".flip")) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; } else tx = null; }, { passive: true });
+document.addEventListener("touchend", e => {
+  if (tx == null) return;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { e.preventDefault(); browseMove(dx < 0 ? 1 : -1); }
+});
+
+async function init() {
+  app.status = "loading"; render();
+  try {
+    const res = await loadData();
+    app.data = res.data; app.source = res.source; app.ix = buildIndex(res.data.muscles); genCache.clear();
+    app.status = "ready";
+  } catch (e) { console.error(e); app.status = "error"; }
+  lastPath = route().path; render();
+}
+window.OIA = { CONFIG, parseMuscleCsv, buildIndex, generateVariants, buildQuestion, scoreVariant, pickNext, recordAnswer, computeMastery, freshState, scopeKey, app, locLevel };
+init();
+</script>
+</body>
+</html>
