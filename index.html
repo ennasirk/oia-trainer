@@ -427,7 +427,7 @@ function makeVariants(base, ix, skipped) {
     let actual = plan[0].level, best = -1;
     plan.forEach(p => { if (p.take > best || (p.take === best && order[p.level] < order[actual])) { best = p.take; actual = p.level; } });
     if (out.has(actual)) continue;
-    const baseId = base.type + ":" + base.subjectKey;
+    const baseId = base.type + ":" + base.subjectKey + (base.scopeTag ? "@" + base.scopeTag : "");
     const v = {
       variantId: baseId + ":" + actual, baseId, type: base.type, subjectKey: base.subjectKey, subjectLabel: base.subjectLabel,
       subjectMuscleId: base.subjectMuscleId || null, refLabel: base.refLabel || null,
@@ -439,7 +439,7 @@ function makeVariants(base, ix, skipped) {
     v.tier = v.score.tier;
     out.set(actual, v);
   }
-  if (!out.size) skipped.push({ baseId: base.type + ":" + base.subjectKey, reason: "Not enough wrong answers available to build options" });
+  if (!out.size) skipped.push({ baseId: base.type + ":" + base.subjectKey + (base.scopeTag ? "@" + base.scopeTag : ""), reason: "Not enough wrong answers available to build options" });
   return [...out.values()];
 }
 function classify(keys, fn) {
@@ -455,6 +455,7 @@ function generateVariants(ix, scope) {
   const M = ix.muscles;
   const scoped = M.filter(m => inScope(m, scope));
   const scopedIds = new Set(scoped.map(m => m.id));
+  const sTag = key;
   const tested = M.filter(m => m.attachmentsTested);
   const muscleName = id => ix.byId[id].name;
   const add = base => variants.push(...makeVariants(base, ix, skipped));
@@ -513,41 +514,40 @@ function generateVariants(ix, scope) {
   scoped.forEach(m => m.pairKeys.forEach(p => { if (!excluded.has(ix.pairs.get(p).joint)) pairSubjects.add(p); }));
   pairSubjects.forEach(p => {
     const pr = ix.pairs.get(p);
-    const correct = [...pr.muscles];
-    const reg = ix.actionJointRegion[pr.joint];
-    const cands = classify(M.filter(o => !pr.muscles.has(o.id)).map(o => o.id), id => {
+    const correct = [...pr.muscles].filter(id => scopedIds.has(id));
+    if (!correct.length) return;
+    const cands = classify(scoped.filter(o => !pr.muscles.has(o.id)).map(o => o.id), id => {
       const o = ix.byId[id];
       if (o.actionJointKeys.has(pr.joint)) return "high";
-      if (o.region === reg) return "medium";
       return "low";
     });
-    add({ type: "T6", subjectKey: p, subjectLabel: pr.jointDisplay + " " + pr.action, correct, display: muscleName, cands, multi: true, related: correct, preferCorrect: scopedIds });
+    add({ type: "T6", subjectKey: p, scopeTag: sTag, subjectLabel: pr.jointDisplay + " " + pr.action, correct, display: muscleName, cands, multi: true, related: correct });
   });
   // T7
   const siteSubjects = new Set(); scoped.forEach(m => m.siteKeys.forEach(s => siteSubjects.add(s)));
   siteSubjects.forEach(s => {
     const site = ix.sites.get(s); if (!site) return;
-    const correct = [...site.muscles]; const cm = correct.map(id => ix.byId[id]);
-    const cands = classify(tested.filter(o => !site.muscles.has(o.id)).map(o => o.id), id => {
+    const correct = [...site.muscles].filter(id => scopedIds.has(id)); if (!correct.length) return;
+    const cm = correct.map(id => ix.byId[id]);
+    const cands = classify(scoped.filter(o => o.attachmentsTested && !site.muscles.has(o.id)).map(o => o.id), id => {
       const o = ix.byId[id];
       if (cm.some(c => [...c.boneKeys].some(b => o.boneKeys.has(b)))) return "high";
-      if (o.region === scope.region) return "medium";
       return "low";
     });
-    add({ type: "T7", subjectKey: s, subjectLabel: site.display, correct, display: muscleName, cands, multi: true, related: correct, preferCorrect: scopedIds });
+    add({ type: "T7", subjectKey: s, scopeTag: sTag, subjectLabel: site.display, correct, display: muscleName, cands, multi: true, related: correct });
   });
   // T8
   const boneSubjects = new Set(); scoped.forEach(m => m.boneKeys.forEach(b => boneSubjects.add(b)));
   boneSubjects.forEach(b => {
     const bone = ix.bones.get(b); if (!bone) return;
-    const correct = [...bone.muscles]; const cm = correct.map(id => ix.byId[id]);
-    const cands = classify(tested.filter(o => !bone.muscles.has(o.id)).map(o => o.id), id => {
+    const correct = [...bone.muscles].filter(id => scopedIds.has(id)); if (!correct.length) return;
+    const cm = correct.map(id => ix.byId[id]);
+    const cands = classify(scoped.filter(o => o.attachmentsTested && !bone.muscles.has(o.id)).map(o => o.id), id => {
       const o = ix.byId[id];
       if (cm.some(c => [...c.crossKeys].some(j => o.crossKeys.has(j)))) return "high";
-      if (o.region === scope.region) return "medium";
       return "low";
     });
-    add({ type: "T8", subjectKey: b, subjectLabel: bone.display, correct, display: muscleName, cands, multi: true, related: correct, preferCorrect: scopedIds });
+    add({ type: "T8", subjectKey: b, scopeTag: sTag, subjectLabel: bone.display, correct, display: muscleName, cands, multi: true, related: correct });
   });
   const res = { variants, skipped, scoped };
   genCache.set(key, res);
